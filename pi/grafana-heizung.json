@@ -1111,7 +1111,27 @@
       "targets": [
         {
           "refId": "A",
-          "query": "from(bucket: \"solar\") |> range(start: -15m) |> filter(fn: (r) => r._measurement == \"gartenhaus\" and r._field == \"temp_c\") |> last() |> map(fn: (r) => ({ _time: r._time, _value: r._value, _field: if r.stelle == \"aussen\" then \"Außen\" else if r.stelle == \"kessel\" then \"Kessel\" else if r.stelle == \"boiler\" then \"Boiler\" else if r.stelle == \"hk_keller\" then \"Heizkreis Keller\" else if r.stelle == \"hk_eg\" then \"Heizkreis EG\" else if r.stelle == \"hk_og\" then \"Heizkreis OG\" else r.stelle }))"
+          "query": "from(bucket: \"solar\") |> range(start: -15m) |> filter(fn: (r) => r._measurement == \"gartenhaus\" and r._field == \"temp_c\" and r.stelle == \"aussen\") |> last() |> map(fn: (r) => ({ _time: r._time, _value: r._value, _field: \"Außen\" }))"
+        },
+        {
+          "refId": "B",
+          "query": "from(bucket: \"solar\") |> range(start: -15m) |> filter(fn: (r) => r._measurement == \"gartenhaus\" and r._field == \"temp_c\" and r.stelle == \"boiler\") |> last() |> map(fn: (r) => ({ _time: r._time, _value: r._value, _field: \"Boiler\" }))"
+        },
+        {
+          "refId": "C",
+          "query": "from(bucket: \"solar\") |> range(start: -15m) |> filter(fn: (r) => r._measurement == \"gartenhaus\" and r._field == \"temp_c\" and r.stelle == \"kessel\") |> last() |> map(fn: (r) => ({ _time: r._time, _value: r._value, _field: \"Kessel\" }))"
+        },
+        {
+          "refId": "D",
+          "query": "from(bucket: \"solar\") |> range(start: -15m) |> filter(fn: (r) => r._measurement == \"gartenhaus\" and r._field == \"temp_c\" and r.stelle == \"hk_keller\") |> last() |> map(fn: (r) => ({ _time: r._time, _value: r._value, _field: \"Heizkreis Keller\" }))"
+        },
+        {
+          "refId": "E",
+          "query": "from(bucket: \"solar\") |> range(start: -15m) |> filter(fn: (r) => r._measurement == \"gartenhaus\" and r._field == \"temp_c\" and r.stelle == \"hk_og\") |> last() |> map(fn: (r) => ({ _time: r._time, _value: r._value, _field: \"Heizkreis OG\" }))"
+        },
+        {
+          "refId": "F",
+          "query": "from(bucket: \"solar\") |> range(start: -15m) |> filter(fn: (r) => r._measurement == \"gartenhaus\" and r._field == \"temp_c\" and r.stelle == \"hk_eg\") |> last() |> map(fn: (r) => ({ _time: r._time, _value: r._value, _field: \"Heizkreis EG\" }))"
         }
       ]
     },
