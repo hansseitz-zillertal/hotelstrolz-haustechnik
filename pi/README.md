@@ -3,6 +3,19 @@
 Zentrale Erfassung der PV-/Power-to-Heat-Anlage: InfluxDB 2 + Grafana + ein
 Python-Collector, der alle 30 s alle Quellen abfragt.
 
+## Sicherung & Versionierung (Stand 11.09.)
+- **`ClaudeProjekte/SOLAR/`** ist seit 11.09. ein **Git-Repo** (lokal, in iCloud) –
+  jede Änderung an Collector/Dashboards/Setup wird committet, volle Historie.
+- **InfluxDB-Backup:** `SOLAR/backups/solar-influx-backup-JJJJMMTT.tar.gz`
+  (`influx backup` auf dem Pi, dann hierher kopiert). Rücksicherung:
+  `tar xzf … && influx restore <ordner> --org … --token … --host …` (neuer Token
+  nötig, falls Instanz neu). In regelmäßigen Abständen neu ziehen (Pi selbst hat
+  keine eigene Redundanz – SD-Karte).
+- **Deployte Dateien = lokale Dateien:** vor jedem Deploy per Checksumme geprüft,
+  `pi/*.py` / `pi/grafana-*.json` sind immer der Stand, der auf dem Pi liegt.
+- `/tmp` auf dem Pi wird nach Deploys aufgeräumt (Collector/Dashboard-Kopien,
+  Test-Skripte).
+
 ## Zugang (Stand 06.09.2026 – im Keller, LAN)
 - Hostname `solar-pi`. PW `2Hundebellen5`, Mac-Key hinterlegt (`ssh solar-pi` → .45).
 - **LAN (eth0):** feste IP **192.168.40.45**, Metrik 100 – primär (Keller-Switch, VLAN 40). ✓
