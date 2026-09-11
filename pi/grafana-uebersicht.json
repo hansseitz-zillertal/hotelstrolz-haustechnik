@@ -1,0 +1,124 @@
+{
+  "uid": "htk-uebersicht",
+  "title": "Haustechnik – Übersicht",
+  "tags": ["haustechnik"],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "refresh": "30s",
+  "time": { "from": "now-12h", "to": "now" },
+  "templating": { "list": [] },
+  "annotations": { "list": [] },
+  "links": [
+    { "title": "Strom & PV", "type": "link", "url": "/d/solar-main", "icon": "bolt", "targetBlank": false, "keepTime": true },
+    { "title": "Heizung", "type": "link", "url": "/d/htk-heizung", "icon": "external link", "targetBlank": false, "keepTime": true },
+    { "title": "Sensoren", "type": "link", "url": "/d/solar-temp", "icon": "external link", "targetBlank": false, "keepTime": true },
+    { "title": "Kühlräume Küche", "type": "link", "url": "/d/kuehlraeume", "icon": "external link", "targetBlank": false, "keepTime": true }
+  ],
+  "panels": [
+    { "id": 1, "type": "row", "title": "Strom & PV", "collapsed": false, "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 } },
+    {
+      "id": 2, "type": "stat", "title": "PV-Produktion",
+      "gridPos": { "h": 5, "w": 6, "x": 0, "y": 1 },
+      "fieldConfig": { "defaults": { "unit": "watt", "decimals": 2, "color": { "mode": "fixed", "fixedColor": "yellow" } }, "overrides": [] },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "value", "graphMode": "area", "textMode": "value" },
+      "targets": [
+        { "refId": "A", "query": "from(bucket: \"solar\") |> range(start: -3h) |> filter(fn: (r) => r._measurement == \"summary\" and r._field == \"pv_w\") |> aggregateWindow(every: 1m, fn: mean, createEmpty: false)" }
+      ]
+    },
+    {
+      "id": 3, "type": "stat", "title": "Einspeisung",
+      "gridPos": { "h": 5, "w": 6, "x": 6, "y": 1 },
+      "fieldConfig": { "defaults": { "unit": "watt", "decimals": 2, "color": { "mode": "fixed", "fixedColor": "green" } }, "overrides": [] },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "value", "graphMode": "area", "textMode": "value" },
+      "targets": [
+        { "refId": "A", "query": "from(bucket: \"solar\") |> range(start: -3h) |> filter(fn: (r) => r._measurement == \"grid\" and r._field == \"einspeisung_w\") |> aggregateWindow(every: 1m, fn: mean, createEmpty: false)" }
+      ]
+    },
+    {
+      "id": 4, "type": "stat", "title": "Netzbezug",
+      "gridPos": { "h": 5, "w": 6, "x": 12, "y": 1 },
+      "fieldConfig": { "defaults": { "unit": "watt", "decimals": 2, "color": { "mode": "fixed", "fixedColor": "red" } }, "overrides": [] },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "value", "graphMode": "area", "textMode": "value" },
+      "targets": [
+        { "refId": "A", "query": "from(bucket: \"solar\") |> range(start: -3h) |> filter(fn: (r) => r._measurement == \"grid\" and r._field == \"bezug_w\") |> aggregateWindow(every: 1m, fn: mean, createEmpty: false)" }
+      ]
+    },
+    {
+      "id": 5, "type": "stat", "title": "Hausverbrauch",
+      "gridPos": { "h": 5, "w": 6, "x": 18, "y": 1 },
+      "fieldConfig": { "defaults": { "unit": "watt", "decimals": 2, "color": { "mode": "fixed", "fixedColor": "purple" } }, "overrides": [] },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "value", "graphMode": "area", "textMode": "value" },
+      "targets": [
+        { "refId": "A", "query": "from(bucket: \"solar\") |> range(start: -3h) |> filter(fn: (r) => r._measurement == \"summary\" and r._field == \"house_w\") |> aggregateWindow(every: 1m, fn: mean, createEmpty: false)" }
+      ]
+    },
+
+    { "id": 10, "type": "row", "title": "Wärme", "collapsed": false, "gridPos": { "h": 1, "w": 24, "x": 0, "y": 6 } },
+    {
+      "id": 11, "type": "stat", "title": "Kessel · Boiler · Pool",
+      "gridPos": { "h": 5, "w": 18, "x": 0, "y": 7 },
+      "fieldConfig": { "defaults": { "unit": "celsius", "decimals": 1, "color": { "mode": "continuous-BlYlRd" } }, "overrides": [] },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "orientation": "horizontal", "colorMode": "background", "textMode": "value_and_name", "graphMode": "none" },
+      "targets": [
+        { "refId": "A", "query": "from(bucket: \"solar\") |> range(start: -15m) |> filter(fn: (r) => r._measurement == \"heizung\" and r._field == \"temp_c\" and r.stelle == \"kessel\") |> last() |> map(fn: (r) => ({ _time: r._time, _value: r._value, _field: \"Kessel Haupthaus\" }))" },
+        { "refId": "B", "query": "from(bucket: \"solar\") |> range(start: -15m) |> filter(fn: (r) => r._measurement == \"heizung\" and r._field == \"temp_c\" and r.stelle == \"boiler\") |> last() |> map(fn: (r) => ({ _time: r._time, _value: r._value, _field: \"Boiler Haupthaus\" }))" },
+        { "refId": "C", "query": "from(bucket: \"solar\") |> range(start: -15m) |> filter(fn: (r) => r._measurement == \"villa\" and r._field == \"temp_c\" and r.stelle == \"kessel\") |> last() |> map(fn: (r) => ({ _time: r._time, _value: r._value, _field: \"Kessel Villa\" }))" },
+        { "refId": "D", "query": "from(bucket: \"solar\") |> range(start: -15m) |> filter(fn: (r) => r._measurement == \"gartenhaus\" and r._field == \"temp_c\" and r.stelle == \"kessel\") |> last() |> map(fn: (r) => ({ _time: r._time, _value: r._value, _field: \"Kessel Gartenhaus\" }))" },
+        { "refId": "E", "query": "from(bucket: \"solar\") |> range(start: -15m) |> filter(fn: (r) => r._measurement == \"schwimmbad\" and r._field == \"temp_c\" and r.stelle == \"becken\") |> last() |> map(fn: (r) => ({ _time: r._time, _value: r._value, _field: \"Schwimmbad\" }))" }
+      ]
+    },
+    {
+      "id": 12, "type": "stat", "title": "Boiler-Leistung (Power-to-Heat)",
+      "gridPos": { "h": 5, "w": 6, "x": 18, "y": 7 },
+      "fieldConfig": { "defaults": { "unit": "watt", "decimals": 2, "color": { "mode": "fixed", "fixedColor": "blue" } }, "overrides": [] },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "value", "graphMode": "area", "textMode": "value" },
+      "targets": [
+        { "refId": "A", "query": "from(bucket: \"solar\") |> range(start: -3h) |> filter(fn: (r) => r._measurement == \"summary\" and r._field == \"boiler_total_w\") |> aggregateWindow(every: 1m, fn: mean, createEmpty: false)" }
+      ]
+    },
+
+    { "id": 20, "type": "row", "title": "Kühlräume", "collapsed": false, "gridPos": { "h": 1, "w": 24, "x": 0, "y": 12 } },
+    {
+      "id": 21, "type": "stat", "title": "Kühlräume  (Warnlinie 8 °C)",
+      "gridPos": { "h": 4, "w": 24, "x": 0, "y": 13 },
+      "fieldConfig": { "defaults": { "unit": "celsius", "decimals": 1, "thresholds": { "mode": "absolute", "steps": [ { "value": null, "color": "blue" }, { "value": 8, "color": "red" } ] }, "color": { "mode": "thresholds" } }, "overrides": [] },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "orientation": "horizontal", "colorMode": "background", "textMode": "value_and_name", "graphMode": "none" },
+      "targets": [
+        { "refId": "A", "query": "from(bucket: \"solar\") |> range(start: -40m) |> filter(fn: (r) => r._measurement == \"sensor\" and r._field == \"temp_c\" and (r.name == \"vorkuehlraum\" or r.name == \"milchkuehlraum\" or r.name == \"fleischkuehlraum\")) |> last() |> map(fn: (r) => ({ _time: r._time, _value: r._value, _field: if r.name == \"vorkuehlraum\" then \"Vorkühlraum\" else if r.name == \"milchkuehlraum\" then \"Milchkühlraum\" else \"Fleischkühlraum\" }))" }
+      ]
+    },
+
+    { "id": 30, "type": "row", "title": "Außen & Wetter", "collapsed": false, "gridPos": { "h": 1, "w": 24, "x": 0, "y": 17 } },
+    {
+      "id": 31, "type": "stat", "title": "Außentemperatur",
+      "gridPos": { "h": 5, "w": 5, "x": 0, "y": 18 },
+      "fieldConfig": { "defaults": { "unit": "celsius", "decimals": 1, "color": { "mode": "continuous-BlYlRd" } }, "overrides": [] },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "value", "graphMode": "area", "textMode": "value" },
+      "targets": [
+        { "refId": "A", "query": "from(bucket: \"solar\") |> range(start: -6h) |> filter(fn: (r) => r._measurement == \"sensor\" and r.name == \"aussen\" and r._field == \"temp_c\") |> aggregateWindow(every: 5m, fn: mean, createEmpty: false)" }
+      ]
+    },
+    {
+      "id": 32, "type": "stat", "title": "Regen 24 h",
+      "gridPos": { "h": 5, "w": 5, "x": 5, "y": 18 },
+      "fieldConfig": { "defaults": { "unit": "lengthmm", "decimals": 1, "color": { "mode": "fixed", "fixedColor": "blue" } }, "overrides": [] },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "value", "graphMode": "none", "textMode": "value" },
+      "targets": [
+        { "refId": "A", "query": "from(bucket: \"solar\") |> range(start: -24h) |> filter(fn: (r) => r._measurement == \"sensor\" and r.name == \"aussen\" and r._field == \"precip_mm\") |> difference(nonNegative: true) |> sum() |> map(fn: (r) => ({ _time: now(), _value: r._value * 0.2 }))" }
+      ]
+    },
+    {
+      "id": 33, "type": "timeseries", "title": "Luftdruck  (Trend = Wetterwechsel)",
+      "gridPos": { "h": 5, "w": 14, "x": 10, "y": 18 },
+      "fieldConfig": { "defaults": { "unit": "pressurehpa", "decimals": 1, "custom": { "fillOpacity": 8, "showPoints": "never", "lineWidth": 2, "spanNulls": true } }, "overrides": [
+        { "matcher": { "id": "byFrameRefID", "options": "Station" }, "properties": [ { "id": "displayName", "value": "Gemessen" }, { "id": "color", "value": { "mode": "fixed", "fixedColor": "blue" } } ] },
+        { "matcher": { "id": "byFrameRefID", "options": "Prognose" }, "properties": [ { "id": "displayName", "value": "Prognose" }, { "id": "color", "value": { "mode": "fixed", "fixedColor": "orange" } }, { "id": "custom.fillOpacity", "value": 0 }, { "id": "custom.lineStyle", "value": { "fill": "dash", "dash": [8, 6] } } ] }
+      ] },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom", "calcs": [] }, "tooltip": { "mode": "multi", "sort": "none" } },
+      "targets": [
+        { "refId": "Station", "query": "from(bucket: \"solar\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop) |> filter(fn: (r) => r._measurement == \"sensor\" and r.name == \"aussen\" and r._field == \"pressure_hpa\") |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false) |> keep(columns: [\"_time\", \"_value\"])" },
+        { "refId": "Prognose", "query": "from(bucket: \"solar\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop) |> filter(fn: (r) => r._measurement == \"forecast\" and r._field == \"pressure_hpa\") |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false) |> keep(columns: [\"_time\", \"_value\"])" }
+      ]
+    }
+  ]
+}

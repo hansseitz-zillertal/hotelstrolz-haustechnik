@@ -1,0 +1,59 @@
+{
+  "uid": "kuehlraeume",
+  "title": "Kühlräume Küche",
+  "tags": ["haustechnik", "kueche"],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "refresh": "1m",
+  "time": { "from": "now-24h", "to": "now" },
+  "templating": { "list": [] },
+  "annotations": { "list": [] },
+  "panels": [
+    {
+      "id": 1, "type": "stat", "title": "Jetzt",
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 0 },
+      "fieldConfig": { "defaults": {
+        "unit": "celsius", "decimals": 1,
+        "thresholds": { "mode": "absolute", "steps": [
+          { "value": null, "color": "blue" },
+          { "value": 6, "color": "green" },
+          { "value": 8, "color": "orange" },
+          { "value": 10, "color": "red" }
+        ] },
+        "color": { "mode": "thresholds" }
+      }, "overrides": [] },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "orientation": "horizontal", "colorMode": "background",
+        "textMode": "value_and_name", "graphMode": "area", "justifyMode": "center"
+      },
+      "targets": [
+        { "refId": "A", "query": "from(bucket: \"solar\") |> range(start: -1h) |> filter(fn: (r) => r._measurement == \"sensor\" and r._field == \"temp_c\" and r.name == \"vorkuehlraum\") |> last() |> map(fn: (r) => ({ _time: r._time, _value: r._value, _field: \"Vorkühlraum\" }))" },
+        { "refId": "B", "query": "from(bucket: \"solar\") |> range(start: -1h) |> filter(fn: (r) => r._measurement == \"sensor\" and r._field == \"temp_c\" and r.name == \"milchkuehlraum\") |> last() |> map(fn: (r) => ({ _time: r._time, _value: r._value, _field: \"Milchkühlraum\" }))" },
+        { "refId": "C", "query": "from(bucket: \"solar\") |> range(start: -1h) |> filter(fn: (r) => r._measurement == \"sensor\" and r._field == \"temp_c\" and r.name == \"fleischkuehlraum\") |> last() |> map(fn: (r) => ({ _time: r._time, _value: r._value, _field: \"Fleischkühlraum\" }))" }
+      ]
+    },
+    {
+      "id": 2, "type": "timeseries", "title": "Verlauf (Warnlinie 8 °C)",
+      "gridPos": { "h": 13, "w": 24, "x": 0, "y": 10 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "celsius", "decimals": 1,
+          "custom": { "fillOpacity": 8, "showPoints": "never", "lineWidth": 2, "spanNulls": true, "thresholdsStyle": { "mode": "line" } },
+          "thresholds": { "mode": "absolute", "steps": [ { "value": null, "color": "blue" }, { "value": 8, "color": "red" } ] }
+        },
+        "overrides": [
+          { "matcher": { "id": "byFrameRefID", "options": "Vor" }, "properties": [ { "id": "displayName", "value": "Vorkühlraum" }, { "id": "color", "value": { "mode": "fixed", "fixedColor": "green" } } ] },
+          { "matcher": { "id": "byFrameRefID", "options": "Milch" }, "properties": [ { "id": "displayName", "value": "Milchkühlraum" }, { "id": "color", "value": { "mode": "fixed", "fixedColor": "blue" } } ] },
+          { "matcher": { "id": "byFrameRefID", "options": "Fleisch" }, "properties": [ { "id": "displayName", "value": "Fleischkühlraum" }, { "id": "color", "value": { "mode": "fixed", "fixedColor": "purple" } } ] }
+        ]
+      },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom", "calcs": ["lastNotNull", "max"] }, "tooltip": { "mode": "multi", "sort": "none" } },
+      "targets": [
+        { "refId": "Vor", "query": "from(bucket: \"solar\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop) |> filter(fn: (r) => r._measurement == \"sensor\" and r._field == \"temp_c\" and r.name == \"vorkuehlraum\") |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false) |> keep(columns: [\"_time\", \"_value\"])" },
+        { "refId": "Milch", "query": "from(bucket: \"solar\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop) |> filter(fn: (r) => r._measurement == \"sensor\" and r._field == \"temp_c\" and r.name == \"milchkuehlraum\") |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false) |> keep(columns: [\"_time\", \"_value\"])" },
+        { "refId": "Fleisch", "query": "from(bucket: \"solar\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop) |> filter(fn: (r) => r._measurement == \"sensor\" and r._field == \"temp_c\" and r.name == \"fleischkuehlraum\") |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false) |> keep(columns: [\"_time\", \"_value\"])" }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,1076 @@
+{
+  "uid": "solar-temp",
+  "title": "Haustechnik – Sensoren",
+  "tags": [
+    "haustechnik"
+  ],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "refresh": "30s",
+  "time": {
+    "from": "now-24h",
+    "to": "now+9h"
+  },
+  "templating": {
+    "list": []
+  },
+  "annotations": {
+    "list": []
+  },
+  "panels": [
+    {
+      "id": 100,
+      "type": "row",
+      "title": "Kühlräume  (Warnlinie 8 °C)",
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "id": 1,
+      "type": "stat",
+      "title": "Kühlräume jetzt",
+      "gridPos": {
+        "h": 6,
+        "w": 6,
+        "x": 0,
+        "y": 1
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "celsius",
+          "decimals": 1,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "value": null,
+                "color": "blue"
+              },
+              {
+                "value": 8,
+                "color": "red"
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          }
+        }
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "orientation": "vertical",
+        "colorMode": "background",
+        "textMode": "value_and_name",
+        "graphMode": "none"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "query": "from(bucket: \"solar\") |> range(start: -40m) |> filter(fn: (r) => r._measurement == \"sensor\" and r._field == \"temp_c\" and (r.name == \"vorkuehlraum\" or r.name == \"milchkuehlraum\" or r.name == \"fleischkuehlraum\")) |> last() |> map(fn: (r) => ({ _time: r._time, _value: r._value, _field: if r.name == \"vorkuehlraum\" then \"Vorkühlraum\" else if r.name == \"milchkuehlraum\" then \"Milchkühlraum\" else \"Fleischkühlraum\" }))"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "type": "timeseries",
+      "title": "Kühlraum-Temperaturen",
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 6,
+        "y": 1
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "celsius",
+          "decimals": 1,
+          "custom": {
+            "fillOpacity": 10,
+            "showPoints": "never",
+            "lineWidth": 2,
+            "spanNulls": true,
+            "thresholdsStyle": {
+              "mode": "line"
+            }
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "value": null,
+                "color": "blue"
+              },
+              {
+                "value": 8,
+                "color": "red"
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "vorkuehlraum"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Vorkühlraum"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "milchkuehlraum"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Milchkühlraum"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "fleischkuehlraum"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Fleischkühlraum"
+              }
+            ]
+          }
+        ]
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "query": "from(bucket: \"solar\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop) |> filter(fn: (r) => r._measurement == \"sensor\" and r._field == \"temp_c\" and (r.name == \"vorkuehlraum\" or r.name == \"milchkuehlraum\" or r.name == \"fleischkuehlraum\")) |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false) |> keep(columns: [\"_time\", \"_value\", \"name\"]) |> group(columns: [\"name\"])"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "type": "timeseries",
+      "title": "Kühlraum-Luftfeuchte",
+      "gridPos": {
+        "h": 9,
+        "w": 6,
+        "x": 18,
+        "y": 1
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "humidity",
+          "custom": {
+            "fillOpacity": 8,
+            "showPoints": "never"
+          }
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "query": "from(bucket: \"solar\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop) |> filter(fn: (r) => r._measurement == \"sensor\" and r._field == \"humidity\" and (r.name == \"vorkuehlraum\" or r.name == \"milchkuehlraum\" or r.name == \"fleischkuehlraum\")) |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false) |> keep(columns: [\"_time\", \"_value\", \"name\"]) |> group(columns: [\"name\"])"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "type": "timeseries",
+      "title": "Kondensator-Lüfter (Leistung)",
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 0,
+        "y": 7
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "watt",
+          "custom": {
+            "fillOpacity": 25,
+            "showPoints": "never",
+            "lineInterpolation": "stepAfter"
+          },
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "blue"
+          }
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "query": "from(bucket: \"solar\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop) |> filter(fn: (r) => r._measurement == \"consumer\" and r.name == \"luefter_kondensator\" and r._field == \"power_w\") |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false) |> keep(columns: [\"_time\", \"_value\"])"
+        }
+      ]
+    },
+    {
+      "id": 101,
+      "type": "row",
+      "title": "Gebäude",
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 16
+      }
+    },
+    {
+      "id": 10,
+      "type": "stat",
+      "title": "Temperaturen jetzt",
+      "gridPos": {
+        "h": 6,
+        "w": 10,
+        "x": 0,
+        "y": 17
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "celsius",
+          "decimals": 1,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "value": null,
+                "color": "blue"
+              },
+              {
+                "value": 27,
+                "color": "orange"
+              },
+              {
+                "value": 35,
+                "color": "red"
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          }
+        }
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "orientation": "auto",
+        "colorMode": "background",
+        "textMode": "value_and_name",
+        "graphMode": "none",
+        "text": {
+          "valueSize": 22,
+          "titleSize": 13
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "query": "from(bucket: \"solar\") |> range(start: -40m) |> filter(fn: (r) => r._measurement == \"sensor\" and r._field == \"temp_c\" and r.name == \"aussen\") |> last() |> map(fn: (r) => ({ _time: r._time, _value: r._value, _field: \"Außen\" }))"
+        },
+        {
+          "refId": "E",
+          "query": "from(bucket: \"solar\") |> range(start: -40m) |> filter(fn: (r) => r._measurement == \"sensor\" and r._field == \"temp_c\" and r.name == \"aussen_nord\") |> last() |> map(fn: (r) => ({ _time: r._time, _value: r._value, _field: \"Außen Nord\" }))"
+        },
+        {
+          "refId": "F",
+          "query": "from(bucket: \"solar\") |> range(start: -40m) |> filter(fn: (r) => r._measurement == \"sensor\" and r._field == \"temp_c\" and r.name == \"pavillon\") |> last() |> map(fn: (r) => ({ _time: r._time, _value: r._value, _field: \"Pavillon (Sonnenterrasse)\" }))"
+        },
+        {
+          "refId": "B",
+          "query": "from(bucket: \"solar\") |> range(start: -3h) |> filter(fn: (r) => r._measurement == \"sensor\" and r._field == \"temp_c\" and r.name == \"rezeption\") |> last() |> map(fn: (r) => ({ _time: r._time, _value: r._value, _field: \"Rezeption\" }))"
+        },
+        {
+          "refId": "C",
+          "query": "from(bucket: \"solar\") |> range(start: -40m) |> filter(fn: (r) => r._measurement == \"sensor\" and r._field == \"temp_c\" and r.name == \"kuehltechnik\") |> last() |> map(fn: (r) => ({ _time: r._time, _value: r._value, _field: \"Kältetechnik-Raum\" }))"
+        },
+        {
+          "refId": "D",
+          "query": "from(bucket: \"solar\") |> range(start: -40m) |> filter(fn: (r) => r._measurement == \"sensor\" and r._field == \"temp_c\" and r.name == \"wr_raum\") |> last() |> map(fn: (r) => ({ _time: r._time, _value: r._value, _field: \"WR-Raum (DG)\" }))"
+        },
+        {
+          "refId": "G",
+          "query": "from(bucket: \"solar\") |> range(start: -40m) |> filter(fn: (r) => r._measurement == \"sensor\" and r._field == \"temp_c\" and r.name == \"hausgang\") |> last() |> map(fn: (r) => ({ _time: r._time, _value: r._value, _field: \"Hausgang\" }))"
+        }
+      ]
+    },
+    {
+      "id": 11,
+      "type": "timeseries",
+      "title": "Temperaturen  (Außen · Außen Nord · Pavillon · Hausgang · WR-Raum · Rezeption · Kältetechnik)",
+      "gridPos": {
+        "h": 11,
+        "w": 8,
+        "x": 10,
+        "y": 17
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "celsius",
+          "decimals": 1,
+          "custom": {
+            "fillOpacity": 5,
+            "showPoints": "never",
+            "lineWidth": 2
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "Aussen"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Außen"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "blue"
+                }
+              },
+              {
+                "id": "custom.fillOpacity",
+                "value": 15
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "AussenNord"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Außen Nord"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "super-light-blue"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "Pavillon"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Pavillon (Sonnenterrasse)"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "semi-dark-orange"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "WRRaum"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "WR-Raum (DG)"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "red"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "Rezeption"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Rezeption"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "yellow"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "Kuehltechnik"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Kältetechnik-Raum"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "orange"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "Hausgang"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Hausgang"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "light-purple"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "targets": [
+        {
+          "refId": "Aussen",
+          "query": "from(bucket: \"solar\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop) |> filter(fn: (r) => r._measurement == \"sensor\" and r.name == \"aussen\" and r._field == \"temp_c\") |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false) |> keep(columns: [\"_time\", \"_value\"])"
+        },
+        {
+          "refId": "AussenNord",
+          "query": "from(bucket: \"solar\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop) |> filter(fn: (r) => r._measurement == \"sensor\" and r.name == \"aussen_nord\" and r._field == \"temp_c\") |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false) |> keep(columns: [\"_time\", \"_value\"])"
+        },
+        {
+          "refId": "Pavillon",
+          "query": "from(bucket: \"solar\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop) |> filter(fn: (r) => r._measurement == \"sensor\" and r.name == \"pavillon\" and r._field == \"temp_c\") |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false) |> keep(columns: [\"_time\", \"_value\"])"
+        },
+        {
+          "refId": "WRRaum",
+          "query": "from(bucket: \"solar\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop) |> filter(fn: (r) => r._measurement == \"sensor\" and r.name == \"wr_raum\" and r._field == \"temp_c\") |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false) |> keep(columns: [\"_time\", \"_value\"])"
+        },
+        {
+          "refId": "Rezeption",
+          "query": "from(bucket: \"solar\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop) |> filter(fn: (r) => r._measurement == \"sensor\" and r.name == \"rezeption\" and r._field == \"temp_c\") |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false) |> keep(columns: [\"_time\", \"_value\"])"
+        },
+        {
+          "refId": "Kuehltechnik",
+          "query": "from(bucket: \"solar\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop) |> filter(fn: (r) => r._measurement == \"sensor\" and r.name == \"kuehltechnik\" and r._field == \"temp_c\") |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false) |> keep(columns: [\"_time\", \"_value\"])"
+        },
+        {
+          "refId": "Hausgang",
+          "query": "from(bucket: \"solar\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop) |> filter(fn: (r) => r._measurement == \"sensor\" and r.name == \"hausgang\" and r._field == \"temp_c\") |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false) |> keep(columns: [\"_time\", \"_value\"])"
+        }
+      ]
+    },
+    {
+      "id": 13,
+      "type": "timeseries",
+      "title": "Technik  (WR-Kühlkörper · Pi-CPU)",
+      "gridPos": {
+        "h": 5,
+        "w": 10,
+        "x": 0,
+        "y": 23
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "celsius",
+          "decimals": 1,
+          "custom": {
+            "fillOpacity": 5,
+            "showPoints": "never",
+            "lineWidth": 2
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "Pi"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Pi-CPU"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "purple"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "targets": [
+        {
+          "refId": "WR",
+          "query": "from(bucket: \"solar\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop) |> filter(fn: (r) => r._measurement == \"pv\" and r._field == \"temp_c\" and r._value > 1.0) |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false) |> map(fn: (r) => ({ r with src: if r.src == \"wr1\" then \"WR 1\" else if r.src == \"wr2\" then \"WR 2\" else if r.src == \"wr3\" then \"WR 3\" else \"WR 4\" })) |> keep(columns: [\"_time\", \"_value\", \"src\"]) |> group(columns: [\"src\"])"
+        },
+        {
+          "refId": "Pi",
+          "query": "from(bucket: \"solar\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop) |> filter(fn: (r) => r._measurement == \"system\" and r._field == \"cpu_temp_c\") |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false) |> keep(columns: [\"_time\", \"_value\"])"
+        }
+      ]
+    },
+    {
+      "id": 12,
+      "type": "timeseries",
+      "title": "Luftfeuchte innen",
+      "gridPos": {
+        "h": 11,
+        "w": 6,
+        "x": 18,
+        "y": 17
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "humidity",
+          "custom": {
+            "fillOpacity": 8,
+            "showPoints": "never"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "wr_raum"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "WR-Raum"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "rezeption"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Rezeption"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "kuehltechnik"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Kältetechnik-Raum"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "hausgang"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Hausgang"
+              }
+            ]
+          }
+        ]
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "query": "from(bucket: \"solar\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop) |> filter(fn: (r) => r._measurement == \"sensor\" and r._field == \"humidity\" and (r.name == \"wr_raum\" or r.name == \"rezeption\" or r.name == \"kuehltechnik\" or r.name == \"hausgang\")) |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false) |> keep(columns: [\"_time\", \"_value\", \"name\"]) |> group(columns: [\"name\"])"
+        }
+      ]
+    },
+    {
+      "id": 102,
+      "type": "row",
+      "title": "Wetter (Wetterstation außen)",
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 30
+      }
+    },
+    {
+      "id": 20,
+      "type": "stat",
+      "title": "Außen jetzt",
+      "gridPos": {
+        "h": 6,
+        "w": 6,
+        "x": 0,
+        "y": 36
+      },
+      "fieldConfig": {
+        "defaults": {
+          "decimals": 1
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Temp"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "celsius"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Taupunkt"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "celsius"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Feuchte"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "humidity"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Druck"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "pressurehpa"
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Regen 24 h"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "lengthmm"
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "orientation": "vertical",
+        "colorMode": "none",
+        "textMode": "value_and_name",
+        "graphMode": "none"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "query": "from(bucket: \"solar\") |> range(start: -40m) |> filter(fn: (r) => r._measurement == \"sensor\" and r.name == \"aussen\" and (r._field == \"temp_c\" or r._field == \"humidity\" or r._field == \"pressure_hpa\" or r._field == \"dewpoint_c\")) |> last() |> map(fn: (r) => ({ _time: r._time, _value: r._value, _field: if r._field == \"temp_c\" then \"Temp\" else if r._field == \"humidity\" then \"Feuchte\" else if r._field == \"pressure_hpa\" then \"Druck\" else \"Taupunkt\" }))"
+        },
+        {
+          "refId": "B",
+          "query": "from(bucket: \"solar\") |> range(start: -24h) |> filter(fn: (r) => r._measurement == \"sensor\" and r.name == \"aussen\" and r._field == \"precip_mm\") |> difference(nonNegative: true) |> sum() |> map(fn: (r) => ({ _time: now(), _value: r._value * 0.2, _field: \"Regen 24 h\" }))"
+        }
+      ]
+    },
+    {
+      "id": 21,
+      "type": "timeseries",
+      "title": "Luftdruck  (Station + Prognose · Trend = Wetterwechsel)",
+      "gridPos": {
+        "h": 8,
+        "w": 9,
+        "x": 6,
+        "y": 36
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "pressurehpa",
+          "decimals": 1,
+          "custom": {
+            "fillOpacity": 8,
+            "showPoints": "never",
+            "lineWidth": 2,
+            "spanNulls": true
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "Station"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Gemessen (Station)"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "blue"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "Prognose"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Prognose (Open-Meteo)"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "orange"
+                }
+              },
+              {
+                "id": "custom.fillOpacity",
+                "value": 0
+              },
+              {
+                "id": "custom.lineStyle",
+                "value": {
+                  "fill": "dash",
+                  "dash": [
+                    8,
+                    6
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "targets": [
+        {
+          "refId": "Station",
+          "query": "from(bucket: \"solar\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop) |> filter(fn: (r) => r._measurement == \"sensor\" and r.name == \"aussen\" and r._field == \"pressure_hpa\") |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false) |> keep(columns: [\"_time\", \"_value\"])"
+        },
+        {
+          "refId": "Prognose",
+          "query": "from(bucket: \"solar\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop) |> filter(fn: (r) => r._measurement == \"forecast\" and r._field == \"pressure_hpa\") |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false) |> keep(columns: [\"_time\", \"_value\"])"
+        }
+      ]
+    },
+    {
+      "id": 22,
+      "type": "timeseries",
+      "title": "Helligkeit außen  vs  Bewölkung (Prognose)",
+      "gridPos": {
+        "h": 8,
+        "w": 9,
+        "x": 15,
+        "y": 36
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "showPoints": "never",
+            "lineWidth": 2,
+            "fillOpacity": 8
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "Licht"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Helligkeit"
+              },
+              {
+                "id": "unit",
+                "value": "lux"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "orange"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "Wolken"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Bewölkung"
+              },
+              {
+                "id": "unit",
+                "value": "percent"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "text"
+                }
+              },
+              {
+                "id": "custom.axisPlacement",
+                "value": "right"
+              }
+            ]
+          }
+        ]
+      },
+      "targets": [
+        {
+          "refId": "Licht",
+          "query": "from(bucket: \"solar\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop) |> filter(fn: (r) => r._measurement == \"sensor\" and r.name == \"aussen\" and r._field == \"illuminance_lux\") |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false) |> keep(columns: [\"_time\", \"_value\"])"
+        },
+        {
+          "refId": "Wolken",
+          "query": "from(bucket: \"solar\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop) |> filter(fn: (r) => r._measurement == \"weather\" and r._field == \"cloud_cover\") |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false) |> keep(columns: [\"_time\", \"_value\"])"
+        }
+      ]
+    },
+    {
+      "id": 23,
+      "type": "stat",
+      "title": "BLU-Sensor-Batterien",
+      "gridPos": {
+        "h": 5,
+        "w": 24,
+        "x": 0,
+        "y": 44
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "decimals": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "value": null,
+                "color": "red"
+              },
+              {
+                "value": 20,
+                "color": "orange"
+              },
+              {
+                "value": 40,
+                "color": "green"
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          }
+        }
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "orientation": "horizontal",
+        "colorMode": "value",
+        "textMode": "value_and_name",
+        "graphMode": "none",
+        "text": {
+          "valueSize": 16
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "query": "from(bucket: \"solar\") |> range(start: -2h) |> filter(fn: (r) => r._measurement == \"sensor\" and r._field == \"battery\") |> last() |> map(fn: (r) => ({ _time: r._time, _value: r._value, _field: if r.name == \"aussen\" then \"Wetterstation\" else if r.name == \"wr_raum\" then \"WR-Raum\" else if r.name == \"vorkuehlraum\" then \"Vorkühlraum\" else if r.name == \"milchkuehlraum\" then \"Milchkühlraum\" else if r.name == \"fleischkuehlraum\" then \"Fleischkühlraum\" else if r.name == \"kuehltechnik\" then \"Kältetechnik-Raum\" else if r.name == \"rezeption\" then \"Rezeption\" else if r.name == \"aussen_nord\" then \"Außen Nord\" else if r.name == \"pavillon\" then \"Pavillon\" else if r.name == \"hausgang\" then \"Hausgang\" else r.name }))"
+        }
+      ]
+    },
+    {
+      "id": 24,
+      "type": "table",
+      "title": "Kälteste / Wärmste  (letzte 24 h · Wetterstation)",
+      "gridPos": {
+        "h": 5,
+        "w": 12,
+        "x": 0,
+        "y": 31
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Temp"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "celsius"
+              },
+              {
+                "id": "decimals",
+                "value": 1
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "continuous-BlYlRd"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Zeitpunkt"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "time:DD.MM. HH:mm"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Wert"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 90
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "lg",
+        "footer": {
+          "show": false
+        }
+      },
+      "transformations": [
+        {
+          "id": "merge",
+          "options": {}
+        }
+      ],
+      "targets": [
+        {
+          "refId": "A",
+          "query": "from(bucket: \"solar\") |> range(start: -24h) |> filter(fn: (r) => r._measurement == \"sensor\" and r.name == \"aussen\" and r._field == \"temp_c\") |> min() |> map(fn: (r) => ({ Wert: \"Kälteste\", Temp: r._value, Zeitpunkt: r._time })) |> keep(columns: [\"Wert\", \"Temp\", \"Zeitpunkt\"])"
+        },
+        {
+          "refId": "B",
+          "query": "from(bucket: \"solar\") |> range(start: -24h) |> filter(fn: (r) => r._measurement == \"sensor\" and r.name == \"aussen\" and r._field == \"temp_c\") |> max() |> map(fn: (r) => ({ Wert: \"Wärmste\", Temp: r._value, Zeitpunkt: r._time })) |> keep(columns: [\"Wert\", \"Temp\", \"Zeitpunkt\"])"
+        }
+      ]
+    }
+  ]
+}

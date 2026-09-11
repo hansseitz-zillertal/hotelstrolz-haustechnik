@@ -1,0 +1,2329 @@
+{
+  "uid": "solar-main",
+  "title": "Haustechnik – Strom & PV",
+  "tags": [
+    "haustechnik"
+  ],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "refresh": "30s",
+  "time": {
+    "from": "now-24h",
+    "to": "now"
+  },
+  "templating": {
+    "list": []
+  },
+  "annotations": {
+    "list": []
+  },
+  "panels": [
+    {
+      "id": 100,
+      "type": "row",
+      "title": "Jetzt",
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "id": 10,
+      "type": "stat",
+      "title": "PV-Produktion",
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 0,
+        "y": 1
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "watt",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "orange"
+          }
+        }
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "graphMode": "area",
+        "colorMode": "value"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "query": "from(bucket: \"solar\") |> range(start: -5m) |> filter(fn: (r) => r._measurement == \"pv\" and r._field == \"power_w\") |> last() |> group() |> sum()"
+        }
+      ]
+    },
+    {
+      "id": 11,
+      "type": "stat",
+      "title": "Netz  ( − = Einspeisung )",
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 4,
+        "y": 1
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "watt",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "value": null,
+                "color": "green"
+              },
+              {
+                "value": 0,
+                "color": "red"
+              }
+            ]
+          }
+        }
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "graphMode": "area",
+        "colorMode": "value"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "query": "from(bucket: \"solar\") |> range(start: -5m) |> filter(fn: (r) => r._measurement == \"grid\" and r._field == \"power_w\") |> last()"
+        }
+      ]
+    },
+    {
+      "id": 14,
+      "type": "stat",
+      "title": "Hausverbrauch",
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 8,
+        "y": 1
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "watt",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "purple"
+          }
+        }
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "graphMode": "area",
+        "colorMode": "value"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "query": "from(bucket: \"solar\") |> range(start: -10m) |> filter(fn: (r) => r._measurement == \"summary\" and r._field == \"house_w\") |> last()"
+        }
+      ]
+    },
+    {
+      "id": 12,
+      "type": "stat",
+      "title": "Boiler",
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 12,
+        "y": 1
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "watt",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "blue"
+          }
+        }
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "graphMode": "area",
+        "colorMode": "value"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "query": "from(bucket: \"solar\") |> range(start: -5m) |> filter(fn: (r) => r._measurement == \"summary\" and r._field == \"boiler_total_w\") |> last()"
+        }
+      ]
+    },
+    {
+      "id": 15,
+      "type": "stat",
+      "title": "Kühlung",
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 16,
+        "y": 1
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "watt",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "blue"
+          }
+        }
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "graphMode": "area",
+        "colorMode": "value"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "query": "from(bucket: \"solar\") |> range(start: -5m) |> filter(fn: (r) => r._measurement == \"consumer\" and r._field == \"power_w\" and r.name == \"kuehlung\") |> last()"
+        }
+      ]
+    },
+    {
+      "id": 16,
+      "type": "stat",
+      "title": "Klima P",
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 20,
+        "y": 1
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "watt",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "text"
+          }
+        }
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "graphMode": "area",
+        "colorMode": "value"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "query": "from(bucket: \"solar\") |> range(start: -5m) |> filter(fn: (r) => r._measurement == \"consumer\" and r._field == \"power_w\" and r.name == \"klima_privat\") |> last()"
+        }
+      ]
+    },
+    {
+      "id": 101,
+      "type": "row",
+      "title": "Leistungsverlauf",
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 5
+      }
+    },
+    {
+      "id": 1,
+      "type": "timeseries",
+      "title": "Leistung",
+      "gridPos": {
+        "h": 10,
+        "w": 24,
+        "x": 0,
+        "y": 6
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "watt",
+          "custom": {
+            "fillOpacity": 12,
+            "showPoints": "never",
+            "lineWidth": 2
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "PV"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "PV gesamt"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "orange"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "Haus"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Hausverbrauch"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "purple"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "Bezug"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Netzbezug"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "red"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "Einsp"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Einspeisung"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "green"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "Boiler"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Boiler gesamt"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "blue"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "targets": [
+        {
+          "refId": "PV",
+          "query": "from(bucket: \"solar\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop) |> filter(fn: (r) => r._measurement == \"pv\" and r._field == \"power_w\") |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false) |> group(columns: [\"_time\"]) |> sum() |> group() |> sort(columns: [\"_time\"])"
+        },
+        {
+          "refId": "Haus",
+          "query": "from(bucket: \"solar\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop) |> filter(fn: (r) => r._measurement == \"summary\" and r._field == \"house_w\") |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false) |> keep(columns: [\"_time\", \"_value\"])"
+        },
+        {
+          "refId": "Bezug",
+          "query": "from(bucket: \"solar\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop) |> filter(fn: (r) => r._measurement == \"grid\" and r._field == \"bezug_w\") |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)"
+        },
+        {
+          "refId": "Einsp",
+          "query": "from(bucket: \"solar\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop) |> filter(fn: (r) => r._measurement == \"grid\" and r._field == \"einspeisung_w\") |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)"
+        },
+        {
+          "refId": "Boiler",
+          "query": "from(bucket: \"solar\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop) |> filter(fn: (r) => r._measurement == \"summary\" and r._field == \"boiler_total_w\") |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)"
+        }
+      ]
+    },
+    {
+      "id": 102,
+      "type": "row",
+      "title": "Aufschlüsselung",
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 16
+      }
+    },
+    {
+      "id": 2,
+      "type": "timeseries",
+      "title": "PV je Wechselrichter",
+      "gridPos": {
+        "h": 9,
+        "w": 8,
+        "x": 0,
+        "y": 17
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "watt",
+          "custom": {
+            "fillOpacity": 15,
+            "showPoints": "never",
+            "stacking": {
+              "mode": "normal"
+            }
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "vorkuehlraum"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Vorkühlraum"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "milchkuehlraum"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Milchkühlraum"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "fleischkuehlraum"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Fleischkühlraum"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "haupthaus"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Haupthaus"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "villa"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Villa"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "gartenhaus"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Gartenhaus"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "kuehlung"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Kühlung"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "kuehlung_begleit"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Begleitkühlung"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "kuehlung_luefter"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Lüfter Kühlraum"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "luefter_kondensator"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Kondensator-Lüfter"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "klima_privat"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Klima Privat"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "klima_wr34"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Klima WR3+4"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "eismaschine"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Eismaschine"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "bierkuehler"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Bierkühler"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "aussen"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Außen"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "wr_raum"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "WR-Raum (DG)"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "rezeption"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Rezeption"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "wr1"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "WR 1"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "wr2"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "WR 2"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "wr3"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "WR 3"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "wr4"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "WR 4"
+              }
+            ]
+          }
+        ]
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "query": "from(bucket: \"solar\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop) |> filter(fn: (r) => r._measurement == \"pv\" and r._field == \"power_w\") |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false) |> keep(columns: [\"_time\", \"_value\", \"src\"]) |> map(fn: (r) => ({ r with src: if r.src == \"vorkuehlraum\" then \"Vorkühlraum\" else if r.src == \"milchkuehlraum\" then \"Milchkühlraum\" else if r.src == \"fleischkuehlraum\" then \"Fleischkühlraum\" else if r.src == \"haupthaus\" then \"Haupthaus\" else if r.src == \"villa\" then \"Villa\" else if r.src == \"gartenhaus\" then \"Gartenhaus\" else if r.src == \"kuehlung\" then \"Kühlung\" else if r.src == \"kuehlung_begleit\" then \"Begleitkühlung\" else if r.src == \"kuehlung_luefter\" then \"Lüfter Kühlraum\" else if r.src == \"luefter_kondensator\" then \"Kondensator-Lüfter\" else if r.src == \"klima_privat\" then \"Klima Privat\" else if r.src == \"klima_wr34\" then \"Klima WR3+4\" else if r.src == \"eismaschine\" then \"Eismaschine\" else if r.src == \"bierkuehler\" then \"Bierkühler\" else if r.src == \"aussen\" then \"Außen\" else if r.src == \"wr_raum\" then \"WR-Raum (DG)\" else if r.src == \"rezeption\" then \"Rezeption\" else if r.src == \"wr1\" then \"WR 1\" else if r.src == \"wr2\" then \"WR 2\" else if r.src == \"wr3\" then \"WR 3\" else if r.src == \"wr4\" then \"WR 4\" else r.src })) |> group(columns: [\"src\"])"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "type": "timeseries",
+      "title": "Boiler je Standort",
+      "gridPos": {
+        "h": 9,
+        "w": 8,
+        "x": 8,
+        "y": 17
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "watt",
+          "custom": {
+            "fillOpacity": 15,
+            "showPoints": "never",
+            "stacking": {
+              "mode": "normal"
+            }
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "vorkuehlraum"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Vorkühlraum"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "milchkuehlraum"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Milchkühlraum"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "fleischkuehlraum"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Fleischkühlraum"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "haupthaus"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Haupthaus"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "villa"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Villa"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "gartenhaus"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Gartenhaus"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "kuehlung"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Kühlung"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "kuehlung_begleit"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Begleitkühlung"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "kuehlung_luefter"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Lüfter Kühlraum"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "luefter_kondensator"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Kondensator-Lüfter"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "klima_privat"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Klima Privat"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "klima_wr34"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Klima WR3+4"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "eismaschine"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Eismaschine"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "bierkuehler"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Bierkühler"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "aussen"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Außen"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "wr_raum"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "WR-Raum (DG)"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "rezeption"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Rezeption"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "wr1"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "WR 1"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "wr2"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "WR 2"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "wr3"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "WR 3"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "wr4"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "WR 4"
+              }
+            ]
+          }
+        ]
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "query": "from(bucket: \"solar\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop) |> filter(fn: (r) => r._measurement == \"boiler\" and r._field == \"power_w\") |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false) |> keep(columns: [\"_time\", \"_value\", \"name\"]) |> map(fn: (r) => ({ r with name: if r.name == \"vorkuehlraum\" then \"Vorkühlraum\" else if r.name == \"milchkuehlraum\" then \"Milchkühlraum\" else if r.name == \"fleischkuehlraum\" then \"Fleischkühlraum\" else if r.name == \"haupthaus\" then \"Haupthaus\" else if r.name == \"villa\" then \"Villa\" else if r.name == \"gartenhaus\" then \"Gartenhaus\" else if r.name == \"kuehlung\" then \"Kühlung\" else if r.name == \"kuehlung_begleit\" then \"Begleitkühlung\" else if r.name == \"kuehlung_luefter\" then \"Lüfter Kühlraum\" else if r.name == \"luefter_kondensator\" then \"Kondensator-Lüfter\" else if r.name == \"klima_privat\" then \"Klima Privat\" else if r.name == \"klima_wr34\" then \"Klima WR3+4\" else if r.name == \"eismaschine\" then \"Eismaschine\" else if r.name == \"bierkuehler\" then \"Bierkühler\" else if r.name == \"aussen\" then \"Außen\" else if r.name == \"wr_raum\" then \"WR-Raum (DG)\" else if r.name == \"rezeption\" then \"Rezeption\" else if r.name == \"wr1\" then \"WR 1\" else if r.name == \"wr2\" then \"WR 2\" else if r.name == \"wr3\" then \"WR 3\" else if r.name == \"wr4\" then \"WR 4\" else r.name })) |> group(columns: [\"name\"])"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "type": "timeseries",
+      "title": "Verbraucher (Kühlung / Klima / Privat / Eis / Bier)",
+      "gridPos": {
+        "h": 9,
+        "w": 8,
+        "x": 16,
+        "y": 17
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "watt",
+          "custom": {
+            "fillOpacity": 12,
+            "showPoints": "never"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "vorkuehlraum"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Vorkühlraum"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "milchkuehlraum"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Milchkühlraum"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "fleischkuehlraum"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Fleischkühlraum"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "haupthaus"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Haupthaus"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "villa"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Villa"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "gartenhaus"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Gartenhaus"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "kuehlung"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Kühlung"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "kuehlung_begleit"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Begleitkühlung"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "kuehlung_luefter"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Lüfter Kühlraum"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "luefter_kondensator"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Kondensator-Lüfter"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "klima_privat"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Klima Privat"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "klima_wr34"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Klima WR3+4"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "eismaschine"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Eismaschine"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "bierkuehler"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Bierkühler"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "aussen"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Außen"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "wr_raum"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "WR-Raum (DG)"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "rezeption"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Rezeption"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "wr1"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "WR 1"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "wr2"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "WR 2"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "wr3"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "WR 3"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "wr4"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "WR 4"
+              }
+            ]
+          }
+        ]
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "query": "from(bucket: \"solar\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop) |> filter(fn: (r) => r._measurement == \"consumer\" and r._field == \"power_w\") |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false) |> keep(columns: [\"_time\", \"_value\", \"name\"]) |> map(fn: (r) => ({ r with name: if r.name == \"vorkuehlraum\" then \"Vorkühlraum\" else if r.name == \"milchkuehlraum\" then \"Milchkühlraum\" else if r.name == \"fleischkuehlraum\" then \"Fleischkühlraum\" else if r.name == \"haupthaus\" then \"Haupthaus\" else if r.name == \"villa\" then \"Villa\" else if r.name == \"gartenhaus\" then \"Gartenhaus\" else if r.name == \"kuehlung\" then \"Kühlung\" else if r.name == \"kuehlung_begleit\" then \"Begleitkühlung\" else if r.name == \"kuehlung_luefter\" then \"Lüfter Kühlraum\" else if r.name == \"luefter_kondensator\" then \"Kondensator-Lüfter\" else if r.name == \"klima_privat\" then \"Klima Privat\" else if r.name == \"klima_wr34\" then \"Klima WR3+4\" else if r.name == \"eismaschine\" then \"Eismaschine\" else if r.name == \"bierkuehler\" then \"Bierkühler\" else if r.name == \"aussen\" then \"Außen\" else if r.name == \"wr_raum\" then \"WR-Raum (DG)\" else if r.name == \"rezeption\" then \"Rezeption\" else if r.name == \"wr1\" then \"WR 1\" else if r.name == \"wr2\" then \"WR 2\" else if r.name == \"wr3\" then \"WR 3\" else if r.name == \"wr4\" then \"WR 4\" else r.name })) |> group(columns: [\"name\"])"
+        }
+      ]
+    },
+    {
+      "id": 103,
+      "type": "row",
+      "title": "Netz / Leistungspreis",
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 26
+      }
+    },
+    {
+      "id": 4,
+      "type": "timeseries",
+      "title": "Netzbezug 15-min-Mittel  (= Abrechnung Leistungspreis)  ·  orange = dynamischer Abwurf-Sollwert (min 40 kW, sonst Monatsspitze)",
+      "gridPos": {
+        "h": 12,
+        "w": 15,
+        "x": 0,
+        "y": 27
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "watt",
+          "custom": {
+            "fillOpacity": 20,
+            "showPoints": "never",
+            "lineInterpolation": "stepAfter",
+            "axisSoftMax": 80000
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "Bezug"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Netzbezug (15 min)"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "blue"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "Soll"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Abwurf-Sollwert"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "orange"
+                }
+              },
+              {
+                "id": "custom.fillOpacity",
+                "value": 0
+              },
+              {
+                "id": "custom.lineWidth",
+                "value": 2
+              },
+              {
+                "id": "custom.lineStyle",
+                "value": {
+                  "fill": "dash",
+                  "dash": [
+                    8,
+                    6
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "targets": [
+        {
+          "refId": "Bezug",
+          "query": "from(bucket: \"solar\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop) |> filter(fn: (r) => r._measurement == \"grid\" and r._field == \"bezug_w\") |> aggregateWindow(every: 15m, fn: mean, createEmpty: false) |> keep(columns: [\"_time\", \"_value\"])"
+        },
+        {
+          "refId": "Soll",
+          "query": "from(bucket: \"solar\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop) |> filter(fn: (r) => r._measurement == \"lastabwurf\" and r._field == \"soll_kw\") |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false) |> map(fn: (r) => ({ r with _value: r._value * 1000.0 })) |> keep(columns: [\"_time\", \"_value\"])"
+        }
+      ]
+    },
+    {
+      "id": 104,
+      "type": "row",
+      "title": "Energie & Zähler",
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 39
+      }
+    },
+    {
+      "id": 6,
+      "type": "barchart",
+      "title": "Energie pro Tag (kWh)  —  je Balkengruppe ein Tag, füllt sich ab Tag 2",
+      "description": "Tages-Deltas der Zählerstände. Netzbezug = aus dem Netz gezogen · Einspeisung = ins Netz · PV WR3+4 = von WR3+4 erzeugt · Boiler = in Warmwasser verheizt.",
+      "gridPos": {
+        "h": 9,
+        "w": 24,
+        "x": 0,
+        "y": 40
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "kwatth",
+          "custom": {
+            "fillOpacity": 85
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "Netzbezug"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Netzbezug"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "red"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "Einspeisung"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Einspeisung"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "green"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "PV"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "PV gesamt"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "orange"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "Boiler"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Boiler (verheizt)"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "blue"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "orientation": "auto",
+        "stacking": "none",
+        "groupWidth": 0.7,
+        "barWidth": 0.9,
+        "xTickLabelRotation": 0,
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        }
+      },
+      "targets": [
+        {
+          "refId": "Netzbezug",
+          "query": "from(bucket: \"solar\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop) |> filter(fn: (r) => r._measurement == \"grid\" and r._field == \"import_kwh\") |> aggregateWindow(every: 1d, fn: last, createEmpty: false) |> difference() |> keep(columns: [\"_time\", \"_value\"])"
+        },
+        {
+          "refId": "Einspeisung",
+          "query": "from(bucket: \"solar\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop) |> filter(fn: (r) => r._measurement == \"grid\" and r._field == \"export_kwh\") |> aggregateWindow(every: 1d, fn: last, createEmpty: false) |> difference() |> keep(columns: [\"_time\", \"_value\"])"
+        },
+        {
+          "refId": "PV",
+          "query": "from(bucket: \"solar\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop) |> filter(fn: (r) => r._measurement == \"pv\" and r._field == \"energy_kwh\") |> aggregateWindow(every: 1d, fn: last, createEmpty: false) |> difference(nonNegative: true) |> filter(fn: (r) => r._value < 2000.0) |> group(columns: [\"_time\"]) |> sum() |> group() |> sort(columns: [\"_time\"]) |> keep(columns: [\"_time\", \"_value\"])"
+        },
+        {
+          "refId": "Boiler",
+          "query": "from(bucket: \"solar\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop) |> filter(fn: (r) => r._measurement == \"boiler\" and r._field == \"energy_kwh\") |> aggregateWindow(every: 1d, fn: last, createEmpty: false) |> difference() |> filter(fn: (r) => r._value >= 0.0) |> group(columns: [\"_time\"]) |> sum() |> group() |> sort(columns: [\"_time\"]) |> keep(columns: [\"_time\", \"_value\"])"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "type": "stat",
+      "title": "Zählerstände (kWh, kumuliert)",
+      "gridPos": {
+        "h": 7,
+        "w": 24,
+        "x": 0,
+        "y": 49
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "kwatth",
+          "decimals": 0,
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "text"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "vorkuehlraum"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Vorkühlraum"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "milchkuehlraum"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Milchkühlraum"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "fleischkuehlraum"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Fleischkühlraum"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "haupthaus"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Haupthaus"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "villa"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Villa"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "gartenhaus"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Gartenhaus"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "kuehlung"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Kühlung"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "kuehlung_begleit"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Begleitkühlung"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "kuehlung_luefter"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Lüfter Kühlraum"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "luefter_kondensator"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Kondensator-Lüfter"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "klima_privat"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Klima Privat"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "klima_wr34"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Klima WR3+4"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "eismaschine"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Eismaschine"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "bierkuehler"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Bierkühler"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "aussen"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Außen"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "wr_raum"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "WR-Raum (DG)"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "rezeption"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Rezeption"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "wr1"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "WR 1"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "wr2"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "WR 2"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "wr3"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "WR 3"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "wr4"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "WR 4"
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "orientation": "horizontal",
+        "colorMode": "none",
+        "textMode": "value_and_name"
+      },
+      "targets": [
+        {
+          "refId": "Netzbezug",
+          "query": "from(bucket: \"solar\") |> range(start: -1h) |> filter(fn: (r) => r._measurement == \"grid\" and r._field == \"import_kwh\") |> last() |> set(key: \"_field\", value: \"Netzbezug\")"
+        },
+        {
+          "refId": "Einspeisung",
+          "query": "from(bucket: \"solar\") |> range(start: -1h) |> filter(fn: (r) => r._measurement == \"grid\" and r._field == \"export_kwh\") |> last() |> set(key: \"_field\", value: \"Einspeisung Netzz.\")"
+        },
+        {
+          "refId": "PV",
+          "query": "from(bucket: \"solar\") |> range(start: -1h) |> filter(fn: (r) => r._measurement == \"pv\" and r._field == \"energy_kwh\") |> last() |> map(fn: (r) => ({ _time: r._time, _value: r._value, _field: \"PV \" + (if r.src==\"wr1\" then \"WR 1\" else if r.src==\"wr2\" then \"WR 2\" else if r.src==\"wr3\" then \"WR 3\" else if r.src==\"wr4\" then \"WR 4\" else r.src) }))"
+        },
+        {
+          "refId": "Boiler",
+          "query": "from(bucket: \"solar\") |> range(start: -1h) |> filter(fn: (r) => r._measurement == \"boiler\" and r._field == \"energy_kwh\") |> last() |> map(fn: (r) => ({ _time: r._time, _value: r._value, _field: \"Boiler \" + (if r.name==\"haupthaus\" then \"Haupthaus\" else if r.name==\"villa\" then \"Villa\" else if r.name==\"gartenhaus\" then \"Gartenhaus\" else r.name) }))"
+        },
+        {
+          "refId": "Consumer",
+          "query": "from(bucket: \"solar\") |> range(start: -1h) |> filter(fn: (r) => r._measurement == \"consumer\" and r._field == \"energy_kwh\") |> last() |> map(fn: (r) => ({ _time: r._time, _value: r._value, _field: (if r.name==\"kuehlung\" then \"Kühlung\" else if r.name==\"kuehlung_begleit\" then \"Begleitkühlung\" else if r.name==\"kuehlung_luefter\" then \"Lüfter Kühlraum\" else if r.name==\"luefter_kondensator\" then \"Kondensator-Lüfter\" else if r.name==\"klima_privat\" then \"Klima Privat\" else if r.name==\"klima_wr34\" then \"Klima WR3+4\" else if r.name==\"eismaschine\" then \"Eismaschine\" else if r.name==\"bierkuehler\" then \"Bierkühler\" else if r.name==\"vorkuehlraum\" then \"Vorkühlraum\" else if r.name==\"milchkuehlraum\" then \"Milchkühlraum\" else if r.name==\"fleischkuehlraum\" then \"Fleischkühlraum\" else r.name) }))"
+        }
+      ]
+    },
+    {
+      "id": 105,
+      "type": "row",
+      "title": "Kühlräume  ·  Details → Seite \"Sensoren\"",
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 56
+      }
+    },
+    {
+      "id": 28,
+      "type": "stat",
+      "title": "Kühlräume jetzt",
+      "gridPos": {
+        "h": 5,
+        "w": 24,
+        "x": 0,
+        "y": 57
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "celsius",
+          "decimals": 1,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "value": null,
+                "color": "blue"
+              },
+              {
+                "value": 8,
+                "color": "red"
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "vorkuehlraum"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Vorkühlraum"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "milchkuehlraum"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Milchkühlraum"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "fleischkuehlraum"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Fleischkühlraum"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "haupthaus"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Haupthaus"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "villa"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Villa"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "gartenhaus"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Gartenhaus"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "kuehlung"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Kühlung"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "kuehlung_begleit"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Begleitkühlung"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "kuehlung_luefter"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Lüfter Kühlraum"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "luefter_kondensator"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Kondensator-Lüfter"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "klima_privat"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Klima Privat"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "klima_wr34"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Klima WR3+4"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "eismaschine"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Eismaschine"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "bierkuehler"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Bierkühler"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "aussen"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Außen"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "wr_raum"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "WR-Raum (DG)"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "rezeption"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Rezeption"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "wr1"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "WR 1"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "wr2"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "WR 2"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "wr3"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "WR 3"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "wr4"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "WR 4"
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "orientation": "horizontal",
+        "colorMode": "value",
+        "textMode": "value_and_name",
+        "graphMode": "none"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "query": "from(bucket: \"solar\") |> range(start: -40m) |> filter(fn: (r) => r._measurement == \"sensor\" and r._field == \"temp_c\" and (r.name == \"vorkuehlraum\" or r.name == \"milchkuehlraum\" or r.name == \"fleischkuehlraum\")) |> last() |> map(fn: (r) => ({ _time: r._time, _value: r._value, _field: (if r.name==\"kuehlung\" then \"Kühlung\" else if r.name==\"kuehlung_begleit\" then \"Begleitkühlung\" else if r.name==\"kuehlung_luefter\" then \"Lüfter Kühlraum\" else if r.name==\"luefter_kondensator\" then \"Kondensator-Lüfter\" else if r.name==\"klima_privat\" then \"Klima Privat\" else if r.name==\"klima_wr34\" then \"Klima WR3+4\" else if r.name==\"eismaschine\" then \"Eismaschine\" else if r.name==\"bierkuehler\" then \"Bierkühler\" else if r.name==\"vorkuehlraum\" then \"Vorkühlraum\" else if r.name==\"milchkuehlraum\" then \"Milchkühlraum\" else if r.name==\"fleischkuehlraum\" then \"Fleischkühlraum\" else r.name) }))"
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "type": "table",
+      "title": "Spitzen-Netzbezug  (15-min-Mittel)",
+      "gridPos": {
+        "h": 6,
+        "w": 9,
+        "x": 15,
+        "y": 27
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Peak"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "watt"
+              },
+              {
+                "id": "decimals",
+                "value": 1
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background",
+                  "mode": "gradient"
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "continuous-YlRd"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Zeitpunkt"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "time:DD.MM. HH:mm"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Zeitraum"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 130
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "lg",
+        "footer": {
+          "show": false
+        }
+      },
+      "transformations": [
+        {
+          "id": "merge",
+          "options": {}
+        },
+        {
+          "id": "organize",
+          "options": {
+            "indexByName": {
+              "Zeitraum": 0,
+              "Peak": 1,
+              "Zeitpunkt": 2
+            }
+          }
+        }
+      ],
+      "targets": [
+        {
+          "refId": "A",
+          "query": "import \"date\"\nfrom(bucket: \"solar\") |> range(start: -24h) |> filter(fn: (r) => r._measurement == \"grid\" and r._field == \"bezug_w\") |> aggregateWindow(every: 15m, fn: mean, createEmpty: false) |> max() |> map(fn: (r) => ({ Zeitraum: \"Letzte 24 h\", Zeitpunkt: r._time, \"Peak\": r._value })) |> keep(columns: [\"Zeitraum\", \"Zeitpunkt\", \"Peak\"])"
+        },
+        {
+          "refId": "B",
+          "query": "import \"date\"\nfrom(bucket: \"solar\") |> range(start: -7d) |> filter(fn: (r) => r._measurement == \"grid\" and r._field == \"bezug_w\") |> aggregateWindow(every: 15m, fn: mean, createEmpty: false) |> max() |> map(fn: (r) => ({ Zeitraum: \"Letzte 7 Tage\", Zeitpunkt: r._time, \"Peak\": r._value })) |> keep(columns: [\"Zeitraum\", \"Zeitpunkt\", \"Peak\"])"
+        },
+        {
+          "refId": "C",
+          "query": "import \"date\"\nfrom(bucket: \"solar\") |> range(start: date.truncate(t: now(), unit: 1mo)) |> filter(fn: (r) => r._measurement == \"grid\" and r._field == \"bezug_w\") |> aggregateWindow(every: 15m, fn: mean, createEmpty: false) |> max() |> map(fn: (r) => ({ Zeitraum: \"Dieser Monat\", Zeitpunkt: r._time, \"Peak\": r._value })) |> keep(columns: [\"Zeitraum\", \"Zeitpunkt\", \"Peak\"])"
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "type": "state-timeline",
+      "title": "Lastabwurf .71  ·  gesperrt = rot",
+      "gridPos": {
+        "h": 6,
+        "w": 9,
+        "x": 15,
+        "y": 33
+      },
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "0": {
+                  "text": "frei",
+                  "color": "green",
+                  "index": 0
+                },
+                "1": {
+                  "text": "gesperrt",
+                  "color": "dark-red",
+                  "index": 1
+                }
+              }
+            }
+          ],
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "value": null,
+                "color": "green"
+              },
+              {
+                "value": 1,
+                "color": "dark-red"
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "waschmaschine"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Waschmaschine"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "trockner"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Trockner"
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "mergeValues": true,
+        "showValue": "never",
+        "rowHeight": 0.9,
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "query": "from(bucket: \"solar\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop) |> filter(fn: (r) => r._measurement == \"lastabwurf\" and (r._field == \"waschmaschine\" or r._field == \"trockner\")) |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false) |> keep(columns: [\"_time\", \"_value\", \"_field\"])"
+        }
+      ]
+    }
+  ]
+}

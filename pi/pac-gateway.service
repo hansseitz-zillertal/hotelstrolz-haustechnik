@@ -1,0 +1,20 @@
+[Unit]
+Description=PAC2200 -> Modbus TCP Gateway (fuer die LOGOs)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3 /opt/solar-collector/pac_gateway.py
+Restart=always
+RestartSec=5
+User=solar
+Group=solar
+AmbientCapabilities=CAP_NET_BIND_SERVICE
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

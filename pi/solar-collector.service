@@ -1,0 +1,20 @@
+[Unit]
+Description=Solar / Power-to-Heat collector -> InfluxDB
+After=network-online.target influxdb.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+EnvironmentFile=/etc/solar-collector.env
+ExecStart=/usr/bin/python3 /opt/solar-collector/collector.py
+Restart=always
+RestartSec=10
+User=solar
+Group=solar
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
