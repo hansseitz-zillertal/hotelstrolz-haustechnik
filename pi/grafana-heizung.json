@@ -1127,11 +1127,11 @@
         },
         {
           "refId": "E",
-          "query": "from(bucket: \"solar\") |> range(start: -15m) |> filter(fn: (r) => r._measurement == \"gartenhaus\" and r._field == \"temp_c\" and r.stelle == \"hk_og\") |> last() |> map(fn: (r) => ({ _time: r._time, _value: r._value, _field: \"Heizkreis OG\" }))"
+          "query": "from(bucket: \"solar\") |> range(start: -15m) |> filter(fn: (r) => r._measurement == \"gartenhaus\" and r._field == \"temp_c\" and r.stelle == \"hk_eg\") |> last() |> map(fn: (r) => ({ _time: r._time, _value: r._value, _field: \"Heizkreis EG\" }))"
         },
         {
           "refId": "F",
-          "query": "from(bucket: \"solar\") |> range(start: -15m) |> filter(fn: (r) => r._measurement == \"gartenhaus\" and r._field == \"temp_c\" and r.stelle == \"hk_eg\") |> last() |> map(fn: (r) => ({ _time: r._time, _value: r._value, _field: \"Heizkreis EG\" }))"
+          "query": "from(bucket: \"solar\") |> range(start: -15m) |> filter(fn: (r) => r._measurement == \"gartenhaus\" and r._field == \"temp_c\" and r.stelle == \"hk_og\") |> last() |> map(fn: (r) => ({ _time: r._time, _value: r._value, _field: \"Heizkreis OG\" }))"
         }
       ]
     },
