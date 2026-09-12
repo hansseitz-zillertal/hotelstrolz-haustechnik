@@ -117,6 +117,7 @@ LOGO_S7 = {
         "vw": {                     # VW-Byteadresse -> Messstelle
             0: "aussen",
             2: "kessel",
+            4: "kessel_soll",
             6: "boiler",
         },
         "bits": {
