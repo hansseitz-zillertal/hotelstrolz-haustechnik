@@ -64,7 +64,7 @@
       "targets": [
         {
           "refId": "A",
-          "query": "from(bucket: \"solar\") |> range(start: -15m) |> filter(fn: (r) => r._measurement == \"heizung\" and r._field == \"temp_c\") |> last() |> map(fn: (r) => ({ _time: r._time, _value: r._value, _field: if r.stelle == \"aussen\" then \"Außen (LOGO)\" else if r.stelle == \"kessel\" then \"Kessel\" else if r.stelle == \"boiler\" then \"Boiler\" else if r.stelle == \"vl_1og_ost\" then \"Vorlauf 1. OG Ost\" else if r.stelle == \"vl_3og\" then \"Vorlauf 3. OG\" else if r.stelle == \"vl_kg_2og_west\" then \"Vorlauf KG–2. OG West\" else if r.stelle == \"vl_kg_2og_ost\" then \"Vorlauf KG–2. OG Ost\" else if r.stelle == \"vl_dg\" then \"Vorlauf Dachgeschoss\" else r.stelle }))"
+          "query": "from(bucket: \"solar\") |> range(start: -15m) |> filter(fn: (r) => r._measurement == \"heizung\" and r._field == \"temp_c\") |> last() |> map(fn: (r) => ({ _time: r._time, _value: r._value, _field: if r.stelle == \"aussen\" then \"Außen (LOGO)\" else if r.stelle == \"kessel\" then \"Kessel\" else if r.stelle == \"kessel_soll\" then \"Kessel Soll\" else if r.stelle == \"boiler\" then \"Boiler\" else if r.stelle == \"vl_1og_ost\" then \"Vorlauf 1. OG Ost\" else if r.stelle == \"vl_3og\" then \"Vorlauf 3. OG\" else if r.stelle == \"vl_kg_2og_west\" then \"Vorlauf KG–2. OG West\" else if r.stelle == \"vl_kg_2og_ost\" then \"Vorlauf KG–2. OG Ost\" else if r.stelle == \"vl_dg\" then \"Vorlauf Dachgeschoss\" else r.stelle }))"
         }
       ]
     },
@@ -194,6 +194,40 @@
                 "value": {
                   "mode": "fixed",
                   "fixedColor": "red"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "kessel_soll"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Kessel Soll"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "red"
+                }
+              },
+              {
+                "id": "custom.fillOpacity",
+                "value": 0
+              },
+              {
+                "id": "custom.lineWidth",
+                "value": 1
+              },
+              {
+                "id": "custom.lineStyle",
+                "value": {
+                  "fill": "dash",
+                  "dash": [8, 6]
                 }
               }
             ]
