@@ -2416,5 +2416,39 @@
         }
       ]
     }
+  ],
+  "links": [
+    {
+      "title": "Übersicht",
+      "type": "link",
+      "url": "/d/htk-uebersicht",
+      "icon": "home",
+      "targetBlank": false,
+      "keepTime": true
+    },
+    {
+      "title": "Heizung",
+      "type": "link",
+      "url": "/d/htk-heizung",
+      "icon": "external link",
+      "targetBlank": false,
+      "keepTime": true
+    },
+    {
+      "title": "Sensoren",
+      "type": "link",
+      "url": "/d/solar-temp",
+      "icon": "external link",
+      "targetBlank": false,
+      "keepTime": true
+    },
+    {
+      "title": "Kühlräume Küche",
+      "type": "link",
+      "url": "/d/kuehlraeume",
+      "icon": "external link",
+      "targetBlank": false,
+      "keepTime": true
+    }
   ]
 }
