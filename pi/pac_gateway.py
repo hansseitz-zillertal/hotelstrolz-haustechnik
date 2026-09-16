@@ -26,6 +26,17 @@ LOGO-Konfiguration:  Modbus-Master -> 192.168.40.45 : 502, Unit-ID 1,
  10    uint16  PAC-Uhr Stunde   (LOCAL_TIME)
  11    uint16  PAC-Uhr Minute
 
+=== Siemens-PAC-kompatibler Passthrough (fuer LOGOs, die schon fix auf das
+    native PAC2200-Registerlayout programmiert sind, z.B. .71 Lastabwurf) ===
+  1/2  float32 U L1-N [V]  (big-endian, 2 Register) -- PAC-Adresse "2" (1-basiert)
+ 65/66 float32 Netzleistung gesamt [W], signiert, + = Bezug, - = Einspeisung
+                 (big-endian, 2 Register) -- PAC-Adresse "66" (1-basiert)
+  Diese 2 Bloecke spiegeln exakt das native Siemens-Registerlayout, damit ein
+  bereits am PAC .73 konfigurierter Modbus-Client NUR die IP auf den Pi
+  (192.168.40.45) umstellen muss -- Register/Laenge/Typ bleiben gleich.
+  (PAC2200 haengt an einem ~3-Client-Modbus-Limit; direkte Verbindungen
+  zusaetzlicher LOGOs werden dort mit "Connection reset" abgewiesen.)
+
 Bei VALID=0 muessen die LOGOs fail-safe schalten (Boiler nur Thermostat,
 Ladestation Minimalstrom/aus, Lastabwurf loesen).
 """
@@ -45,8 +56,9 @@ LISTEN_PORT = int(os.environ.get("GATEWAY_PORT", "502"))
 POLL_S = float(os.environ.get("GATEWAY_POLL", "3"))
 STALE_S = 20
 
-# 32 Register, thread-safe ueber die GIL fuer einzelne Zuweisungen
-REGS = [0] * 32
+# 68 Register (bis Adresse 66 fuer den Siemens-Passthrough), thread-safe
+# ueber die GIL fuer einzelne Zuweisungen
+REGS = [0] * 68
 _last_ok = 0.0
 
 
@@ -57,6 +69,12 @@ def _clamp_u16(v):
 def _s16(v):
     v = int(round(v))
     return max(-32768, min(32767, v))
+
+
+def _put_f32(regs, addr, value):
+    """Big-endian IEEE754 float32 auf 2 Register (addr, addr+1) schreiben."""
+    hi, lo = struct.unpack(">HH", struct.pack(">f", value))
+    regs[addr], regs[addr + 1] = hi, lo
 
 
 def poll_pac():
@@ -78,6 +96,16 @@ def poll_pac():
             grid_w = p * 1000.0
             today_kwh = val("TODAY_T1") or 0.0
             lt = ov.get("LOCAL_TIME", "")
+
+            u_l1n = None
+            try:
+                with urllib.request.urlopen(
+                        "http://%s/data.json?type=INST_VALUES" % PAC_GRID, timeout=4) as ri:
+                    iv = json.loads(ri.read().decode())["INST_VALUES"]
+                v1 = iv.get("V_L1")
+                u_l1n = v1["value"] if isinstance(v1, dict) else v1
+            except Exception:
+                pass
 
             pv_w = 0
             try:
@@ -101,6 +129,9 @@ def poll_pac():
             if len(lt) >= 16:
                 REGS[10] = int(lt[11:13])
                 REGS[11] = int(lt[14:16])
+            if u_l1n is not None:
+                _put_f32(REGS, 1, u_l1n)          # HR "2" (1-basiert): U L1-N [V]
+            _put_f32(REGS, 65, grid_w)            # HR "66" (1-basiert): Netzleistung gesamt [W]
             _last_ok = time.time()
         except Exception as e:
             print("PAC-Lesung fehlgeschlagen:", e, flush=True)
