@@ -104,6 +104,9 @@ BLU_GATEWAYS = {
     "192.168.40.34": {                        # Shelly Plus 1PM am Pavillon, BLE-Gateway
         "f8:44:77:2b:2c:7e": "pavillon",      # BLU H&T Sonnenterrasse/Pavillon (unter Dach, sonnig)
     },
+    "192.168.40.158": {                       # Shelly Plug S G3 (Kueche), BLE-Gateway
+        "fc:4d:6a:39:24:32": "kuehlschrank_patisserie",
+    },
 }
 BLU_MAX_AGE = 1800                    # s, aeltere Einzelwerte verwerfen
 
