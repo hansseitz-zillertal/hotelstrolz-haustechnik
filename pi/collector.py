@@ -97,7 +97,7 @@ BLU_GATEWAYS = {
     "192.168.40.133": {                       # Shelly Plug S G3 (Kondensator-Luefter, Kaeltetechnik-Raum)
         "fc:4d:6a:39:69:e8": "kuehltechnik",
     },
-    "192.168.40.101": {                       # Shelly Wall Display (Rezeption), BLE-Gateway (20.09.: IP von .90 auf .101 gewechselt, DHCP)
+    "192.168.40.123": {                       # Shelly Wall Display (Rezeption), BLE-Gateway (20.09.: feste UniFi-Reservierung auf .123)
         "7c:c6:b6:65:1f:fd": "aussen_nord",   # BLU H&T aussen Nordseite (Schattentemperatur)
         "f8:44:77:21:39:f6": "hausgang",      # BLU H&T Hausgang (Innentemperatur)
     },
