@@ -95,8 +95,8 @@ def ip_str(value):
     return ".".join(str(b) for b in struct.pack(">I", value))
 
 
-def diagnose(unit=UNIT):
-    s = connect()
+def diagnose(unit=UNIT, host=HOST):
+    s = connect(host=host)
     try:
         dev_utc = u32(read_holding(s, 799, 2, unit))
         period_ts = u32(read_holding(s, 545, 2, unit))
@@ -132,18 +132,36 @@ def diagnose(unit=UNIT):
         print(f"status: {k:<24}: {v}")
 
 
+def ip_u32(s):
+    parts = [int(p) for p in s.split(".")]
+    return struct.unpack(">I", bytes(parts))[0]
+
+
+def set_sntp(host, ip, unit=UNIT):
+    s = connect(host=host)
+    try:
+        write_holding(s, 62993, u32_regs(ip_u32(ip)), unit)
+        new_ip = ip_str(u32(read_holding(s, 62993, 2, unit)))
+        print(f"{host} -> SNTP server IP set to {new_ip}")
+    finally:
+        s.close()
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--unit", type=int, default=UNIT)
+    ap.add_argument("--host", default=HOST)
     sub = ap.add_subparsers(dest="cmd", required=True)
     sub.add_parser("diagnose")
     r = sub.add_parser("read"); r.add_argument("addr", type=int); r.add_argument("count", type=int, nargs="?", default=2)
+    sn = sub.add_parser("set-sntp", help="write SNTP server IP (register 62993); only reachable from the meter's own subnet (192.168.40.x), not routed from the Mac")
+    sn.add_argument("ip")
     args = ap.parse_args()
 
     if args.cmd == "diagnose":
-        diagnose(args.unit)
+        diagnose(args.unit, args.host)
     elif args.cmd == "read":
-        s = connect()
+        s = connect(host=args.host)
         try:
             raw = read_holding(s, args.addr, args.count, args.unit)
         finally:
@@ -153,6 +171,8 @@ def main():
         if len(raw) >= 4:
             print("u32   :", struct.unpack(">I", raw[:4])[0])
             print("float :", struct.unpack(">f", raw[:4])[0])
+    elif args.cmd == "set-sntp":
+        set_sntp(args.host, args.ip, args.unit)
 
 
 if __name__ == "__main__":
