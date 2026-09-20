@@ -925,7 +925,7 @@
       "type": "stat",
       "title": "BLU-Sensor-Batterien",
       "gridPos": {
-        "h": 5,
+        "h": 9,
         "w": 24,
         "x": 0,
         "y": 44
@@ -962,12 +962,13 @@
             "lastNotNull"
           ]
         },
-        "orientation": "horizontal",
+        "orientation": "auto",
         "colorMode": "value",
         "textMode": "value_and_name",
         "graphMode": "none",
         "text": {
-          "valueSize": 16
+          "valueSize": 24,
+          "titleSize": 14
         }
       },
       "targets": [
