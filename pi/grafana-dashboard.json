@@ -2365,6 +2365,22 @@
                 "value": 200
               }
             ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Leistung"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "kwatt"
+              },
+              {
+                "id": "decimals",
+                "value": 1
+              }
+            ]
           }
         ]
       },
@@ -2384,11 +2400,11 @@
       "targets": [
         {
           "refId": "A",
-          "query": "from(bucket: \"solar\") |> range(start: -90d) |> filter(fn: (r) => r._measurement == \"lastabwurf\" and r._field == \"trockner\") |> difference(nonNegative: false) |> filter(fn: (r) => r._value == 1) |> map(fn: (r) => ({ Zeitpunkt: r._time, \"Gerät\": \"Trockner\" })) |> keep(columns: [\"Zeitpunkt\", \"Gerät\"])"
+          "query": "from(bucket: \"solar\") |> range(start: -90d) |> filter(fn: (r) => r._measurement == \"lastabwurf\" and (r._field == \"trockner\" or r._field == \"ist_kw\")) |> pivot(rowKey: [\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\") |> difference(columns: [\"trockner\"], nonNegative: false) |> filter(fn: (r) => r.trockner == 1) |> map(fn: (r) => ({ Zeitpunkt: r._time, \"Gerät\": \"Trockner\", Leistung: r.ist_kw })) |> keep(columns: [\"Zeitpunkt\", \"Gerät\", \"Leistung\"])"
         },
         {
           "refId": "B",
-          "query": "from(bucket: \"solar\") |> range(start: -90d) |> filter(fn: (r) => r._measurement == \"lastabwurf\" and r._field == \"waschmaschine\") |> difference(nonNegative: false) |> filter(fn: (r) => r._value == 1) |> map(fn: (r) => ({ Zeitpunkt: r._time, \"Gerät\": \"Waschmaschine\" })) |> keep(columns: [\"Zeitpunkt\", \"Gerät\"])"
+          "query": "from(bucket: \"solar\") |> range(start: -90d) |> filter(fn: (r) => r._measurement == \"lastabwurf\" and (r._field == \"waschmaschine\" or r._field == \"ist_kw\")) |> pivot(rowKey: [\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\") |> difference(columns: [\"waschmaschine\"], nonNegative: false) |> filter(fn: (r) => r.waschmaschine == 1) |> map(fn: (r) => ({ Zeitpunkt: r._time, \"Gerät\": \"Waschmaschine\", Leistung: r.ist_kw })) |> keep(columns: [\"Zeitpunkt\", \"Gerät\", \"Leistung\"])"
         }
       ],
       "transformations": [
