@@ -1111,7 +1111,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 42
+        "y": 46
       }
     },
     {
@@ -1122,7 +1122,7 @@
         "h": 7,
         "w": 5,
         "x": 0,
-        "y": 43
+        "y": 47
       },
       "fieldConfig": {
         "defaults": {
@@ -1180,7 +1180,7 @@
         "h": 7,
         "w": 14,
         "x": 10,
-        "y": 43
+        "y": 47
       },
       "fieldConfig": {
         "defaults": {
@@ -1336,7 +1336,7 @@
         "h": 7,
         "w": 5,
         "x": 5,
-        "y": 43
+        "y": 47
       },
       "fieldConfig": {
         "defaults": {
@@ -1664,6 +1664,156 @@
         {
           "refId": "A",
           "query": "from(bucket: \"solar\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop) |> filter(fn: (r) => r._measurement == \"schwimmbad\" and r._field == \"on\" and (r.stelle == \"ventil_auf\" or r.stelle == \"ventil_zu\")) |> aggregateWindow(every: v.windowPeriod, fn: max, createEmpty: false) |> keep(columns: [\"_time\", \"_value\", \"stelle\"])"
+        }
+      ]
+    },
+    {
+      "id": 63,
+      "type": "table",
+      "title": "Villa – Brenner-Laufzeit",
+      "gridPos": {
+        "h": 4,
+        "w": 9,
+        "x": 0,
+        "y": 42
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Brenner-Laufzeit"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "h"
+              },
+              {
+                "id": "decimals",
+                "value": 1
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Zeitraum"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 110
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "md",
+        "footer": {
+          "show": false
+        }
+      },
+      "transformations": [
+        {
+          "id": "merge",
+          "options": {}
+        }
+      ],
+      "targets": [
+        {
+          "refId": "A",
+          "query": "from(bucket: \"solar\") |> range(start: -24h) |> filter(fn: (r) => r._measurement == \"villa\" and r._field == \"on\" and r.stelle == \"brenner\") |> integral(unit: 1h) |> map(fn: (r) => ({ Zeitraum: \"Letzte 24 h\", \"Brenner-Laufzeit\": r._value })) |> keep(columns: [\"Zeitraum\", \"Brenner-Laufzeit\"])"
+        },
+        {
+          "refId": "B",
+          "query": "from(bucket: \"solar\") |> range(start: -7d) |> filter(fn: (r) => r._measurement == \"villa\" and r._field == \"on\" and r.stelle == \"brenner\") |> integral(unit: 1h) |> map(fn: (r) => ({ Zeitraum: \"Letzte 7 Tage\", \"Brenner-Laufzeit\": r._value })) |> keep(columns: [\"Zeitraum\", \"Brenner-Laufzeit\"])"
+        },
+        {
+          "refId": "C",
+          "query": "import \"date\"\nfrom(bucket: \"solar\") |> range(start: date.truncate(t: now(), unit: 1mo)) |> filter(fn: (r) => r._measurement == \"villa\" and r._field == \"on\" and r.stelle == \"brenner\") |> integral(unit: 1h) |> map(fn: (r) => ({ Zeitraum: \"Dieser Monat\", \"Brenner-Laufzeit\": r._value })) |> keep(columns: [\"Zeitraum\", \"Brenner-Laufzeit\"])"
+        }
+      ]
+    },
+    {
+      "id": 73,
+      "type": "table",
+      "title": "Gartenhaus – Brenner-Laufzeit",
+      "gridPos": {
+        "h": 4,
+        "w": 9,
+        "x": 0,
+        "y": 54
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Brenner-Laufzeit"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "h"
+              },
+              {
+                "id": "decimals",
+                "value": 1
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Zeitraum"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 110
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "md",
+        "footer": {
+          "show": false
+        }
+      },
+      "transformations": [
+        {
+          "id": "merge",
+          "options": {}
+        }
+      ],
+      "targets": [
+        {
+          "refId": "A",
+          "query": "from(bucket: \"solar\") |> range(start: -24h) |> filter(fn: (r) => r._measurement == \"gartenhaus\" and r._field == \"on\" and r.stelle == \"brenner\") |> integral(unit: 1h) |> map(fn: (r) => ({ Zeitraum: \"Letzte 24 h\", \"Brenner-Laufzeit\": r._value })) |> keep(columns: [\"Zeitraum\", \"Brenner-Laufzeit\"])"
+        },
+        {
+          "refId": "B",
+          "query": "from(bucket: \"solar\") |> range(start: -7d) |> filter(fn: (r) => r._measurement == \"gartenhaus\" and r._field == \"on\" and r.stelle == \"brenner\") |> integral(unit: 1h) |> map(fn: (r) => ({ Zeitraum: \"Letzte 7 Tage\", \"Brenner-Laufzeit\": r._value })) |> keep(columns: [\"Zeitraum\", \"Brenner-Laufzeit\"])"
+        },
+        {
+          "refId": "C",
+          "query": "import \"date\"\nfrom(bucket: \"solar\") |> range(start: date.truncate(t: now(), unit: 1mo)) |> filter(fn: (r) => r._measurement == \"gartenhaus\" and r._field == \"on\" and r.stelle == \"brenner\") |> integral(unit: 1h) |> map(fn: (r) => ({ Zeitraum: \"Dieser Monat\", \"Brenner-Laufzeit\": r._value })) |> keep(columns: [\"Zeitraum\", \"Brenner-Laufzeit\"])"
         }
       ]
     }
