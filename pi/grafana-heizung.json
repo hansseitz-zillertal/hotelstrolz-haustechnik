@@ -941,7 +941,52 @@
             ]
           }
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Störung"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "0": {
+                        "text": "OK",
+                        "color": "green",
+                        "index": 0
+                      },
+                      "1": {
+                        "text": "STÖRUNG",
+                        "color": "red",
+                        "index": 1
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "value": null,
+                      "color": "green"
+                    },
+                    {
+                      "value": 1,
+                      "color": "red"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
       },
       "options": {
         "reduceOptions": {
@@ -962,6 +1007,10 @@
         {
           "refId": "A",
           "query": "from(bucket: \"solar\") |> range(start: -15m) |> filter(fn: (r) => r._measurement == \"villa\" and r._field == \"on\") |> last() |> map(fn: (r) => ({ _time: r._time, _value: r._value, _field: if r.stelle == \"boiler\" then \"Boiler\" else if r.stelle == \"brenner\" then \"Brenner\" else if r.stelle == \"ladepumpe\" then \"Ladepumpe\" else r.stelle }))"
+        },
+        {
+          "refId": "B",
+          "query": "from(bucket: \"solar\") |> range(start: -15m) |> filter(fn: (r) => r._measurement == \"villa\" and r._field == \"stoerung\" and r.stelle == \"brenner\") |> last() |> map(fn: (r) => ({ _time: r._time, _value: r._value, _field: \"Störung\" }))"
         }
       ]
     },
@@ -1374,7 +1423,52 @@
             ]
           }
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Störung"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "0": {
+                        "text": "OK",
+                        "color": "green",
+                        "index": 0
+                      },
+                      "1": {
+                        "text": "STÖRUNG",
+                        "color": "red",
+                        "index": 1
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "value": null,
+                      "color": "green"
+                    },
+                    {
+                      "value": 1,
+                      "color": "red"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
       },
       "options": {
         "reduceOptions": {
@@ -1395,6 +1489,10 @@
         {
           "refId": "A",
           "query": "from(bucket: \"solar\") |> range(start: -15m) |> filter(fn: (r) => r._measurement == \"gartenhaus\" and r._field == \"on\") |> last() |> map(fn: (r) => ({ _time: r._time, _value: r._value, _field: if r.stelle == \"brenner\" then \"Brenner\" else if r.stelle == \"boilerpumpe\" then \"Boilerpumpe\" else r.stelle }))"
+        },
+        {
+          "refId": "B",
+          "query": "from(bucket: \"solar\") |> range(start: -15m) |> filter(fn: (r) => r._measurement == \"gartenhaus\" and r._field == \"stoerung\" and r.stelle == \"brenner\") |> last() |> map(fn: (r) => ({ _time: r._time, _value: r._value, _field: \"Störung\" }))"
         }
       ]
     },

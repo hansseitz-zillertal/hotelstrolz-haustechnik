@@ -217,6 +217,40 @@ LOGO_LASTABWURF = {
         "14.1": "waschmaschine",
     },
 }
+
+# --- Brenner-Stoerungserkennung (Villa/Gartenhaus) --------------------------
+# Brenner laeuft (bit "on"=1), aber Kesseltemperatur steigt ueber ein rollierendes
+# Fenster nicht ausreichend -> vermutlich Stoerabschaltung/Verriegelung am Brenner,
+# waehrend die Waermeanforderung (Brenner-Freigabe) weiter ansteht.
+BRENNER_WATCH = {
+    "villa": "kessel",
+    "gartenhaus": "kessel",
+}
+BRENNER_WATCH_MIN_ON_S = 20 * 60     # Fensterlaenge: so lange Dauerlauf, bevor bewertet wird
+BRENNER_WATCH_MIN_RISE = 0.5         # muss im Fenster mind. so viel gestiegen sein (degC)
+_brenner_watch_state = {}            # meas -> {"on_since": ts, "temp0": float, "stoerung": 0}
+
+
+def check_brenner_stoerung(meas, kessel_temp, brenner_on):
+    st = _brenner_watch_state.setdefault(meas, {"on_since": None, "temp0": None, "stoerung": 0})
+    now = time.time()
+    if not brenner_on:
+        st["on_since"] = None
+        st["temp0"] = None
+        st["stoerung"] = 0
+        return 0
+    if st["on_since"] is None:
+        st["on_since"] = now
+        st["temp0"] = kessel_temp
+        return st["stoerung"]
+    if now - st["on_since"] >= BRENNER_WATCH_MIN_ON_S:
+        if kessel_temp is not None and st["temp0"] is not None:
+            st["stoerung"] = 0 if (kessel_temp - st["temp0"]) >= BRENNER_WATCH_MIN_RISE else 1
+        st["on_since"] = now          # rollierendes Fenster: neu baselinen
+        st["temp0"] = kessel_temp
+    return st["stoerung"]
+
+
 REZEPTION_IP = "192.168.40.145"      # Shelly H&T Gen3 (Rezeption): Temp/Feuchte/Batterie.
                                      # Batteriebetrieb -> Deep-Sleep, nur beim Aufwachen
                                      # (Default alle 2 h, oder per USB-C dauerhaft wach) erreichbar.
@@ -842,6 +876,13 @@ def collect(cycle=0):
     if LOGO_S7:
         try:
             lt, lt_errs = logo_temps()
+            for meas, kessel_stelle in BRENNER_WATCH.items():
+                if meas in lt:
+                    kt = lt[meas].get(kessel_stelle, {}).get("temp_c")
+                    on = lt[meas].get("brenner", {}).get("on")
+                    if on is not None:
+                        st = check_brenner_stoerung(meas, kt, bool(on))
+                        lt[meas].setdefault("brenner", {})["stoerung"] = st
             for meas, stellen in lt.items():
                 for name, fields in stellen.items():
                     add(meas, {"stelle": name}, fields)
