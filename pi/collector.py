@@ -138,7 +138,7 @@ LOGO_S7 = {
         "slot": 2,
         "vw": {
             # ACHTUNG: Namen = VW-Kennung (Historie in InfluxDB). Echte Bedeutung (Dashboard, 25.09.):
-            # VW4 = Dachgeschoss, VW6 = KG-2.OG OST, VW8 = KG-2.OG WEST
+            # VW4 = Dachgeschoss, VW6 = KG-2.OG WEST, VW8 = KG-2.OG OST
             4: "vl_kg_2og_west",
             6: "vl_kg_2og_ost",
             8: "vl_dg",
