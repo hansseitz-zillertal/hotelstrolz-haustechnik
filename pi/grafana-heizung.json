@@ -652,6 +652,10 @@
         {
           "refId": "B",
           "query": "from(bucket: \"solar\") |> range(start: -15m) |> filter(fn: (r) => r._measurement == \"lueftung\" and r._field == \"percent\" and r.stelle == \"klappe\") |> last() |> map(fn: (r) => ({ _time: r._time, _value: r._value, _field: \"Klappe\" }))"
+        },
+        {
+          "refId": "C",
+          "query": "from(bucket: \"solar\") |> range(start: -15m) |> filter(fn: (r) => r._measurement == \"lueftung\" and r._field == \"on\" and r.stelle == \"anforderung_heizung\") |> last() |> map(fn: (r) => ({ _time: r._time, _value: r._value, _field: \"Anforderung Heizung\" }))"
         }
       ]
     },

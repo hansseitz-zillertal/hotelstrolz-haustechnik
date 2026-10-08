@@ -153,6 +153,7 @@ LOGO_S7 = {
         },
         "bits": {                   # "VByte.Bit" -> Messstelle, Feld "on" (0/1)
             "12.0": "kueche",       # NQ1 Schaltzustand Lueftung Kueche
+            "12.2": "anforderung_heizung",  # NQ3 Anforderung Heizung (NW-Ausgang an LOGO .153)
             "4.0": "pumpe",         # Pumpe ein/aus
         },
     },
@@ -320,8 +321,13 @@ def blu_sensors():
                 continue
             fcd2 = (d.get("sdata") or {}).get("fcd2")
             if fcd2:
+                try:
+                    decoded = _decode_bthome(base64.b64decode(fcd2))
+                except Exception as e:
+                    errs.append("%s:%s" % (mac, e))
+                    continue
                 st = _BLU_STATE.setdefault(mac, {})
-                for k, v in _decode_bthome(base64.b64decode(fcd2)).items():
+                for k, v in decoded.items():
                     st[k] = (v, now)
 
     out = {}
