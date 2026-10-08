@@ -98,7 +98,9 @@ BLU_GATEWAYS = {
         "fc:4d:6a:39:69:e8": "kuehltechnik",
     },
     "192.168.40.123": {                       # Shelly Wall Display (Rezeption), BLE-Gateway (20.09.: feste UniFi-Reservierung auf .123)
-        "7c:c6:b6:65:1f:fd": "aussen_nord",   # BLU H&T aussen Nordseite (Schattentemperatur)
+        # alte aussen_nord-MAC 7c:c6:b6:65:1f:fd sendet seit 07.10. nur noch kaputte BTHome-
+        # Pakete (Hardwaredefekt) -> 08.10. ersetzt durch neuen Sensor, nicht wieder eintragen.
+        "c0:2c:ed:20:ac:c9": "aussen_nord",   # BLU H&T aussen Nordseite (Schattentemperatur), Ersatzgeraet seit 08.10.
         "f8:44:77:21:39:f6": "hausgang",      # BLU H&T Hausgang (Innentemperatur)
     },
     "192.168.40.34": {                        # Shelly Plus 1PM am Pavillon, BLE-Gateway
