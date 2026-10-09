@@ -76,6 +76,7 @@ CONSUMERS_PLUG = {                    # Shelly Plug S Gen3 (Switch.GetStatus)
     # Summe enthalten -> nur zur Aufschluesselung, nie zusaetzlich aufsummieren.
     "kuehlung_begleit": "192.168.40.192",
     "kuehlung_luefter": "192.168.40.133",
+    "skischuhtrockner": "192.168.40.199",   # Shelly Pro 1PM (Hutschiene), ~1,75 kW. Auch in PI_LASTABWURF.
 }
 EM_METERS = {                        # Shelly Pro EM 50 (2 CT-Kanaele), ip -> {kanal: name}
     "192.168.40.140": {0: "klima_privat", 1: "klima_wr34"},   # verifiziert 06.09. (Klima-Test)
@@ -452,6 +453,66 @@ def lastabwurf_setpoint(cycle=0):
         except Exception:
             pass
     return max(base, _setpoint["kw"] or base)
+
+
+# --- Lastabwurf ueber den Pi: kleine Verbraucher ohne LOGO-Anschluss --------
+# Kein freier LOGO-Ausgang -> der Pi schaltet hier selbst per Shelly-RPC, statt
+# nur einen Sollwert in eine LOGO zu schreiben. Alle Geraete werden GEMEINSAM
+# ab-/zugeschaltet (jede Last klein, nur die Summe zaehlt). Duerfen laut
+# Betreiber bis zu 15 Min. ausbleiben -> der normale 30s-Collector-Zyklus
+# reicht, kein eigener schneller Kontroll-Loop noetig.
+PI_LASTABWURF = {
+    "skischuhtrockner": "192.168.40.199",   # Shelly Pro 1PM, Hutschiene, ~1,75 kW
+}
+PI_LASTABWURF_ON_DELAY_S = 90      # so lange ueber dem Sollwert, bevor abgeworfen wird
+PI_LASTABWURF_MIN_OFF_S = 15 * 60  # mind. so lange aus, danach erst wieder pruefen
+_pi_lastabwurf_state = {"over_since": None, "shed": False, "shed_since": None}
+
+
+def _shelly_switch(ip, on):
+    body = json.dumps({"id": 0, "on": on}).encode()
+    req = urllib.request.Request(
+        "http://%s/rpc/Switch.Set" % ip, data=body, method="POST")
+    req.add_header("Content-Type", "application/json")
+    with urllib.request.urlopen(req, timeout=HTTP_TIMEOUT) as r:
+        r.read()
+
+
+def pi_lastabwurf(bezug_w, soll_kw):
+    """Gemeinsamer Lastabwurf kleiner Verbraucher, die der Pi direkt per
+    Shelly-RPC schaltet (kein LOGO-Ausgang frei). Einschaltverzoegerung
+    gegen kurze Lastspitzen, Mindest-Aus-Zeit gegen Flattern."""
+    if not PI_LASTABWURF:
+        return {}
+    st = _pi_lastabwurf_state
+    now = time.time()
+    over = (bezug_w / 1000.0) > soll_kw
+    errs = []
+    if over:
+        if st["over_since"] is None:
+            st["over_since"] = now
+        if not st["shed"] and now - st["over_since"] >= PI_LASTABWURF_ON_DELAY_S:
+            for ip in PI_LASTABWURF.values():
+                try:
+                    _shelly_switch(ip, False)
+                except Exception as e:
+                    errs.append("%s:%s" % (ip, e))
+            st["shed"] = True
+            st["shed_since"] = now
+    else:
+        st["over_since"] = None
+        if st["shed"] and now - st["shed_since"] >= PI_LASTABWURF_MIN_OFF_S:
+            for ip in PI_LASTABWURF.values():
+                try:
+                    _shelly_switch(ip, True)
+                except Exception as e:
+                    errs.append("%s:%s" % (ip, e))
+            st["shed"] = False
+            st["shed_since"] = None
+    out = {"shed": int(st["shed"])}
+    if errs:
+        out["switch_err"] = "; ".join(errs)
+    return out
 
 
 def write_lastabwurf(bezug_w, soll_kw):
@@ -915,6 +976,14 @@ def collect(cycle=0):
         except Exception as e:
             dbg["lastabwurf_err"] = str(e)
             _s7_clients.pop(LOGO_LASTABWURF["ip"], None)
+    if PI_LASTABWURF and grid_w is not None:
+        try:
+            bezug_w = max(0.0, grid_w)
+            soll_kw = lastabwurf_setpoint(cycle)
+            f = pi_lastabwurf(bezug_w, soll_kw)
+            add("lastabwurf_pi", {}, f)
+        except Exception as e:
+            dbg["lastabwurf_pi_err"] = str(e)
     return lines, dbg
 
 

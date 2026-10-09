@@ -1258,7 +1258,7 @@
       "targets": [
         {
           "refId": "A",
-          "query": "from(bucket: \"solar\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop) |> filter(fn: (r) => r._measurement == \"consumer\" and r._field == \"power_w\") |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false) |> keep(columns: [\"_time\", \"_value\", \"name\"]) |> map(fn: (r) => ({ r with name: if r.name == \"vorkuehlraum\" then \"Vorkühlraum\" else if r.name == \"milchkuehlraum\" then \"Milchkühlraum\" else if r.name == \"fleischkuehlraum\" then \"Fleischkühlraum\" else if r.name == \"haupthaus\" then \"Haupthaus\" else if r.name == \"villa\" then \"Villa\" else if r.name == \"gartenhaus\" then \"Gartenhaus\" else if r.name == \"kuehlung\" then \"Kühlung\" else if r.name == \"kuehlung_begleit\" then \"Begleitkühlung\" else if r.name == \"kuehlung_luefter\" then \"Lüfter Kühlraum\" else if r.name == \"luefter_kondensator\" then \"Kondensator-Lüfter\" else if r.name == \"klima_privat\" then \"Klima Privat\" else if r.name == \"klima_wr34\" then \"Klima WR3+4\" else if r.name == \"eismaschine\" then \"Eismaschine\" else if r.name == \"bierkuehler\" then \"Bierkühler\" else if r.name == \"aussen\" then \"Außen\" else if r.name == \"wr_raum\" then \"WR-Raum (DG)\" else if r.name == \"rezeption\" then \"Rezeption\" else if r.name == \"wr1\" then \"WR 1\" else if r.name == \"wr2\" then \"WR 2\" else if r.name == \"wr3\" then \"WR 3\" else if r.name == \"wr4\" then \"WR 4\" else r.name })) |> group(columns: [\"name\"])"
+          "query": "from(bucket: \"solar\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop) |> filter(fn: (r) => r._measurement == \"consumer\" and r._field == \"power_w\") |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false) |> keep(columns: [\"_time\", \"_value\", \"name\"]) |> map(fn: (r) => ({ r with name: if r.name == \"vorkuehlraum\" then \"Vorkühlraum\" else if r.name == \"milchkuehlraum\" then \"Milchkühlraum\" else if r.name == \"fleischkuehlraum\" then \"Fleischkühlraum\" else if r.name == \"haupthaus\" then \"Haupthaus\" else if r.name == \"villa\" then \"Villa\" else if r.name == \"gartenhaus\" then \"Gartenhaus\" else if r.name == \"kuehlung\" then \"Kühlung\" else if r.name == \"kuehlung_begleit\" then \"Begleitkühlung\" else if r.name == \"kuehlung_luefter\" then \"Lüfter Kühlraum\" else if r.name == \"luefter_kondensator\" then \"Kondensator-Lüfter\" else if r.name == \"klima_privat\" then \"Klima Privat\" else if r.name == \"klima_wr34\" then \"Klima WR3+4\" else if r.name == \"eismaschine\" then \"Eismaschine\" else if r.name == \"bierkuehler\" then \"Bierkühler\" else if r.name == \"skischuhtrockner\" then \"Skischuhtrockner\" else if r.name == \"aussen\" then \"Außen\" else if r.name == \"wr_raum\" then \"WR-Raum (DG)\" else if r.name == \"rezeption\" then \"Rezeption\" else if r.name == \"wr1\" then \"WR 1\" else if r.name == \"wr2\" then \"WR 2\" else if r.name == \"wr3\" then \"WR 3\" else if r.name == \"wr4\" then \"WR 4\" else r.name })) |> group(columns: [\"name\"])"
         }
       ]
     },
@@ -1373,7 +1373,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 44
+        "y": 48
       }
     },
     {
@@ -1385,7 +1385,7 @@
         "h": 9,
         "w": 24,
         "x": 0,
-        "y": 45
+        "y": 49
       },
       "fieldConfig": {
         "defaults": {
@@ -1511,7 +1511,7 @@
         "h": 7,
         "w": 24,
         "x": 0,
-        "y": 54
+        "y": 58
       },
       "fieldConfig": {
         "defaults": {
@@ -1819,7 +1819,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 61
+        "y": 65
       }
     },
     {
@@ -1830,7 +1830,7 @@
         "h": 5,
         "w": 24,
         "x": 0,
-        "y": 62
+        "y": 66
       },
       "fieldConfig": {
         "defaults": {
@@ -2429,6 +2429,105 @@
           "options": {
             "limitField": 5
           }
+        }
+      ]
+    },
+    {
+      "id": 17,
+      "type": "stat",
+      "title": "Skischuhtrockner",
+      "gridPos": {
+        "h": 4,
+        "w": 8,
+        "x": 0,
+        "y": 44
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "watt",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "blue"
+          }
+        }
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "graphMode": "area",
+        "colorMode": "value"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "query": "from(bucket: \"solar\") |> range(start: -10m) |> filter(fn: (r) => r._measurement == \"consumer\" and r._field == \"power_w\" and r.name == \"skischuhtrockner\") |> last()"
+        }
+      ]
+    },
+    {
+      "id": 18,
+      "type": "state-timeline",
+      "title": "Lastabwurf Pi (Skischuhtrockner)  ·  abgeworfen = rot",
+      "gridPos": {
+        "h": 4,
+        "w": 16,
+        "x": 8,
+        "y": 44
+      },
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "0": {
+                  "text": "frei",
+                  "color": "green",
+                  "index": 0
+                },
+                "1": {
+                  "text": "abgeworfen",
+                  "color": "dark-red",
+                  "index": 1
+                }
+              }
+            }
+          ],
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "value": null,
+                "color": "green"
+              },
+              {
+                "value": 1,
+                "color": "dark-red"
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "mergeValues": true,
+        "showValue": "never",
+        "rowHeight": 0.9,
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "query": "from(bucket: \"solar\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop) |> filter(fn: (r) => r._measurement == \"lastabwurf_pi\" and r._field == \"shed\") |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false) |> map(fn: (r) => ({ r with _field: \"Skischuhtrockner\" })) |> keep(columns: [\"_time\", \"_value\", \"_field\"])"
         }
       ]
     }
