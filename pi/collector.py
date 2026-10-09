@@ -466,7 +466,25 @@ PI_LASTABWURF = {
 }
 PI_LASTABWURF_ON_DELAY_S = 90      # so lange ueber dem Sollwert, bevor abgeworfen wird
 PI_LASTABWURF_MIN_OFF_S = 15 * 60  # mind. so lange aus, danach erst wieder pruefen
+# Wiedereinschalten nach einem Abwurf nur innerhalb dieser Fenster (lokale Zeit,
+# "HH:MM"), damit der Pi nicht gegen die am Shelly selbst programmierte
+# Zeitschaltuhr arbeitet (dort: an 7-9 Uhr + 15:20-18 Uhr, Skischuhtrockner).
+# Leere Liste = Zeitplan ignorieren, immer sofort nach Mindest-Aus-Zeit wieder an.
+PI_LASTABWURF_SCHEDULE = [("07:00", "09:00"), ("15:20", "18:00")]
 _pi_lastabwurf_state = {"over_since": None, "shed": False, "shed_since": None}
+
+
+def _in_schedule_window(now, windows=PI_LASTABWURF_SCHEDULE):
+    if not windows:
+        return True
+    lt = time.localtime(now)
+    cur = lt.tm_hour * 60 + lt.tm_min
+    for start, end in windows:
+        sh, sm = (int(x) for x in start.split(":"))
+        eh, em = (int(x) for x in end.split(":"))
+        if sh * 60 + sm <= cur < eh * 60 + em:
+            return True
+    return False
 
 
 def _shelly_switch(ip, on):
@@ -501,7 +519,8 @@ def pi_lastabwurf(bezug_w, soll_kw):
             st["shed_since"] = now
     else:
         st["over_since"] = None
-        if st["shed"] and now - st["shed_since"] >= PI_LASTABWURF_MIN_OFF_S:
+        if (st["shed"] and now - st["shed_since"] >= PI_LASTABWURF_MIN_OFF_S
+                and _in_schedule_window(now)):
             for ip in PI_LASTABWURF.values():
                 try:
                     _shelly_switch(ip, True)
