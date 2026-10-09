@@ -76,7 +76,7 @@ CONSUMERS_PLUG = {                    # Shelly Plug S Gen3 (Switch.GetStatus)
     # Summe enthalten -> nur zur Aufschluesselung, nie zusaetzlich aufsummieren.
     "kuehlung_begleit": "192.168.40.192",
     "kuehlung_luefter": "192.168.40.133",
-    "skischuhtrockner": "192.168.40.199",   # Shelly Pro 1PM (Hutschiene), ~1,75 kW. Auch in PI_LASTABWURF.
+    "skischuhtrockner_hotel": "192.168.40.199",   # Shelly Pro 1PM (Hutschiene), ~1,75 kW. Auch in PI_LASTABWURF. Zweiter kommt noch.
 }
 EM_METERS = {                        # Shelly Pro EM 50 (2 CT-Kanaele), ip -> {kanal: name}
     "192.168.40.140": {0: "klima_privat", 1: "klima_wr34"},   # verifiziert 06.09. (Klima-Test)
@@ -462,7 +462,7 @@ def lastabwurf_setpoint(cycle=0):
 # Betreiber bis zu 15 Min. ausbleiben -> der normale 30s-Collector-Zyklus
 # reicht, kein eigener schneller Kontroll-Loop noetig.
 PI_LASTABWURF = {
-    "skischuhtrockner": "192.168.40.199",   # Shelly Pro 1PM, Hutschiene, ~1,75 kW
+    "skischuhtrockner_hotel": "192.168.40.199",   # Shelly Pro 1PM, Hutschiene, ~1,75 kW
 }
 PI_LASTABWURF_ON_DELAY_S = 90      # so lange ueber dem Sollwert, bevor abgeworfen wird
 PI_LASTABWURF_MIN_OFF_S = 15 * 60  # mind. so lange aus, danach erst wieder pruefen
