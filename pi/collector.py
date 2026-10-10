@@ -471,7 +471,43 @@ PI_LASTABWURF_MIN_OFF_S = 15 * 60  # mind. so lange aus, danach erst wieder prue
 # Zeitschaltuhr arbeitet (dort: an 7-9 Uhr + 15:20-18 Uhr, Skischuhtrockner).
 # Leere Liste = Zeitplan ignorieren, immer sofort nach Mindest-Aus-Zeit wieder an.
 PI_LASTABWURF_SCHEDULE = [("07:00", "09:00"), ("15:20", "18:00")]
+# Nebensaison-Schutz: wiedereinschalten nur, wenn das Geraet HEUTE schon mal
+# gelaufen ist (= die Zeitschaltuhr am Shelly ist aktiv). Laeuft seit
+# Mitternacht nie etwas, ist vermutlich Nebensaison/Zeitplan deaktiviert ->
+# der Pi soll dann nicht trotzdem einschalten, nur weil Uhrzeit+Mindest-Aus
+# zufaellig passen. Kein festes Saison-Datum noetig, passt sich selbst an.
+PI_LASTABWURF_MIN_POWER_W = 50
+_pi_ran_today = {}   # name -> {"date": "YYYY-MM-DD", "seen": bool, "checked_ts": float}
 _pi_lastabwurf_state = {"over_since": None, "shed": False, "shed_since": None}
+
+
+def _ran_today(name, refresh_s=600):
+    today = time.strftime("%Y-%m-%d", time.localtime())
+    c = _pi_ran_today.setdefault(name, {"date": None, "seen": False, "checked_ts": 0.0})
+    if c["date"] != today:
+        c["date"], c["seen"], c["checked_ts"] = today, False, 0.0
+    if c["seen"]:
+        return True
+    now = time.time()
+    if now - c["checked_ts"] < refresh_s:
+        return False
+    c["checked_ts"] = now
+    lt = time.localtime(now)
+    midnight_ts = time.mktime((lt.tm_year, lt.tm_mon, lt.tm_mday, 0, 0, 0, 0, 0, -1))
+    midnight_iso = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(midnight_ts))
+    try:
+        flux = ('from(bucket: "%s") |> range(start: %s) '
+                '|> filter(fn: (r) => r._measurement == "consumer" and r.name == "%s" '
+                'and r._field == "power_w") |> max() |> keep(columns: ["_value"])'
+                % (INFLUX_BUCKET, midnight_iso, name))
+        for line in _influx_query(flux).splitlines():
+            p = line.split(",")
+            if len(p) >= 4 and p[0] == "" and p[1] == "_result":
+                if float(p[-1]) >= PI_LASTABWURF_MIN_POWER_W:
+                    c["seen"] = True
+    except Exception:
+        pass
+    return c["seen"]
 
 
 def _in_schedule_window(now, windows=PI_LASTABWURF_SCHEDULE):
@@ -520,7 +556,8 @@ def pi_lastabwurf(bezug_w, soll_kw):
     else:
         st["over_since"] = None
         if (st["shed"] and now - st["shed_since"] >= PI_LASTABWURF_MIN_OFF_S
-                and _in_schedule_window(now)):
+                and _in_schedule_window(now)
+                and any(_ran_today(name) for name in PI_LASTABWURF)):
             for ip in PI_LASTABWURF.values():
                 try:
                     _shelly_switch(ip, True)
