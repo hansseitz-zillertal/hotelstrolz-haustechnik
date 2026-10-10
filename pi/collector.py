@@ -61,7 +61,7 @@ INVERTERS = [
 ]
 BOILERS = {                          # Shelly Pro 3EM (EM.GetStatus)
     "haupthaus": "192.168.40.159",
-    "villa": "192.168.2.139",
+    "villa": "192.168.40.40",   # 10.10.: von 192.168.2.139 (anderes Subnetz, unerreichbar) hierher verlegt
     "gartenhaus": "192.168.40.66",
 }
 
