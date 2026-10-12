@@ -77,6 +77,11 @@ CONSUMERS_PLUG = {                    # Shelly Plug S Gen3 (Switch.GetStatus)
     "kuehlung_begleit": "192.168.40.192",
     "kuehlung_luefter": "192.168.40.133",
     "skischuhtrockner_hotel": "192.168.40.199",   # Shelly Pro 1PM (Hutschiene), ~1,75 kW. Auch in PI_LASTABWURF. Zweiter kommt noch.
+    # Nur Protokollierung, bewusst KEIN Dashboard-Panel (User-Wunsch). Schaltung
+    # läuft eigenständig per Shelly-Script (Nachtsperre+Zwangslüftung), nicht
+    # über den Pi. Motion-Sensor löst laut User manchmal grundlos aus -> hier
+    # nur zur späteren Auswertung mitgeloggt.
+    "badluefter_101": "192.168.40.101",
 }
 EM_METERS = {                        # Shelly Pro EM 50 (2 CT-Kanaele), ip -> {kanal: name}
     "192.168.40.140": {0: "klima_privat", 1: "klima_wr34"},   # verifiziert 06.09. (Klima-Test)
