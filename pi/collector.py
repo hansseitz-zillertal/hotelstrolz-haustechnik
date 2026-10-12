@@ -128,6 +128,7 @@ LOGO_S7 = {
         },
         "bits": {
             "8.0": "boiler",        # NQ: Boiler-Ladepumpe ein/aus
+            "26.0": "anforderung_lueftung",  # NI von .154 NQ3 (Anforderung Heizung Lueftung Kueche)
         },
     },
     "192.168.40.155": {              # LOGO 2 (Vorlauf Wohnungen)
