@@ -157,7 +157,7 @@ LOGO_S7 = {
         },
         "bits": {                   # "VByte.Bit" -> Messstelle, Feld "on" (0/1)
             "12.0": "kueche",       # NQ1 Schaltzustand Lueftung Kueche
-            "12.2": "anforderung_heizung",  # NQ3 Anforderung Heizung (NW-Ausgang an LOGO .153)
+            "8.0": "anforderung_heizung",  # NQ (neu, 12.10.) Anforderung Heizung (NW-Ausgang an LOGO .153, eigene Verbindung TSAP 21.00)
             "4.0": "pumpe",         # Pumpe ein/aus
         },
     },
