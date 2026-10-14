@@ -651,6 +651,19 @@ def pi_lastabwurf_villa(bezug_w, soll_kw):
         PI_LASTABWURF_ON_DELAY_S, PI_LASTABWURF_MIN_OFF_S, _switch_logo_bit)
 
 
+# Stiegenheizung Gartenhaus: gleiches Prinzip wie Villa, eigene LOGO .60.
+PI_LASTABWURF_GARTENHAUS = {
+    "stiegenheizung_gartenhaus": ("192.168.40.60", 1, 0),   # V1.0
+}
+_pi_lastabwurf_gartenhaus_state = {"over_since": None, "shed": False, "shed_since": None}
+
+
+def pi_lastabwurf_gartenhaus(bezug_w, soll_kw):
+    return _pi_lastabwurf_group(
+        PI_LASTABWURF_GARTENHAUS, _pi_lastabwurf_gartenhaus_state, bezug_w, soll_kw,
+        PI_LASTABWURF_ON_DELAY_S, PI_LASTABWURF_MIN_OFF_S, _switch_logo_bit)
+
+
 def write_lastabwurf(bezug_w, soll_kw):
     """Netzbezug (VW_IST) + Sollwert (VW_SOLL) per S7 in die Abwurf-LOGO schreiben."""
     import snap7
@@ -1176,6 +1189,16 @@ def collect(cycle=0):
             pass
         except Exception as e:
             dbg["lastabwurf_pi_villa_err"] = str(e)
+    if PI_LASTABWURF_GARTENHAUS and grid_w is not None:
+        try:
+            bezug_w = max(0.0, grid_w)
+            soll_kw = lastabwurf_setpoint(cycle)
+            f = pi_lastabwurf_gartenhaus(bezug_w, soll_kw)
+            add("lastabwurf_pi_gartenhaus", {}, f)
+        except ImportError:
+            pass
+        except Exception as e:
+            dbg["lastabwurf_pi_gartenhaus_err"] = str(e)
     return lines, dbg
 
 
