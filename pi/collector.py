@@ -529,8 +529,8 @@ def _in_schedule_window(now, windows=PI_LASTABWURF_SCHEDULE):
     return False
 
 
-def _shelly_switch(ip, on):
-    body = json.dumps({"id": 0, "on": on}).encode()
+def _shelly_switch(ip, on, channel=0):
+    body = json.dumps({"id": channel, "on": on}).encode()
     req = urllib.request.Request(
         "http://%s/rpc/Switch.Set" % ip, data=body, method="POST")
     req.add_header("Content-Type", "application/json")
@@ -538,42 +538,74 @@ def _shelly_switch(ip, on):
         r.read()
 
 
-def pi_lastabwurf(bezug_w, soll_kw):
-    """Gemeinsamer Lastabwurf kleiner Verbraucher, die der Pi direkt per
-    Shelly-RPC schaltet (kein LOGO-Ausgang frei). Einschaltverzoegerung
-    gegen kurze Lastspitzen, Mindest-Aus-Zeit gegen Flattern."""
-    if not PI_LASTABWURF:
+def _devspec(v):
+    """PI_LASTABWURF-Werte sind entweder "ip" (Kanal 0) oder (ip, kanal)."""
+    return (v, 0) if isinstance(v, str) else v
+
+
+def _pi_lastabwurf_group(devices, state, bezug_w, soll_kw, on_delay_s,
+                          min_off_s, restore_gate=None):
+    """Gemeinsamer Lastabwurf fuer eine Geraetegruppe, die der Pi direkt per
+    Shelly-RPC schaltet (kein LOGO-Ausgang frei). Einschaltverzoegerung gegen
+    kurze Lastspitzen, Mindest-Aus-Zeit gegen Flattern. restore_gate(now) ->
+    bool, falls gesetzt: zusaetzliche Bedingung, bevor wieder eingeschaltet
+    werden darf (z.B. Zeitplan-Ruecksicht); None = immer erlaubt."""
+    if not devices:
         return {}
-    st = _pi_lastabwurf_state
     now = time.time()
     over = (bezug_w / 1000.0) > soll_kw
     errs = []
     if over:
-        if st["over_since"] is None:
-            st["over_since"] = now
-        if not st["shed"] and now - st["over_since"] >= PI_LASTABWURF_ON_DELAY_S:
-            for ip in PI_LASTABWURF.values():
+        if state["over_since"] is None:
+            state["over_since"] = now
+        if not state["shed"] and now - state["over_since"] >= on_delay_s:
+            for ip, ch in (_devspec(v) for v in devices.values()):
                 try:
-                    _shelly_switch(ip, False)
+                    _shelly_switch(ip, False, ch)
                 except Exception as e:
-                    errs.append("%s:%s" % (ip, e))
-            st["shed"] = True
-            st["shed_since"] = now
+                    errs.append("%s:%s:%s" % (ip, ch, e))
+            state["shed"] = True
+            state["shed_since"] = now
     else:
-        st["over_since"] = None
-        if (st["shed"] and now - st["shed_since"] >= PI_LASTABWURF_MIN_OFF_S
-                and _in_schedule_window(now)
-                and any(_ran_today(name) for name in PI_LASTABWURF)):
-            for ip in PI_LASTABWURF.values():
+        state["over_since"] = None
+        if (state["shed"] and now - state["shed_since"] >= min_off_s
+                and (restore_gate is None or restore_gate(now))):
+            for ip, ch in (_devspec(v) for v in devices.values()):
                 try:
-                    _shelly_switch(ip, True)
+                    _shelly_switch(ip, True, ch)
                 except Exception as e:
-                    errs.append("%s:%s" % (ip, e))
-            st["shed"] = False
-            st["shed_since"] = None
-    out = {"shed": int(st["shed"])}
+                    errs.append("%s:%s:%s" % (ip, ch, e))
+            state["shed"] = False
+            state["shed_since"] = None
+    out = {"shed": int(state["shed"])}
     if errs:
         out["switch_err"] = "; ".join(errs)
+    return out
+
+
+def pi_lastabwurf(bezug_w, soll_kw):
+    return _pi_lastabwurf_group(
+        PI_LASTABWURF, _pi_lastabwurf_state, bezug_w, soll_kw,
+        PI_LASTABWURF_ON_DELAY_S, PI_LASTABWURF_MIN_OFF_S,
+        restore_gate=lambda now: (
+            _in_schedule_window(now)
+            and any(_ran_today(name) for name in PI_LASTABWURF)))
+
+
+# Stiegenheizung Hotel + Rigol: laufen 24h (Eis-/Wasserbedarf, kein fester
+# Tagesplan wie der Skischuhtrockner) -> keine Zeitfenster-/"heute schon
+# gelaufen"-Beschraenkung beim Wiedereinschalten, sonst wie oben.
+PI_LASTABWURF_24H = {
+    "stiegenheizung_hotel": ("192.168.40.167", 0),  # Shelly Pro 2, Kanal 0 -> treibt vorhandenes mehrpol. Relais (R+S)
+    "rigol": ("192.168.40.167", 1),                 # Shelly Pro 2, Kanal 1 -> direkt (T, sicher < 16A)
+}
+_pi_lastabwurf_24h_state = {"over_since": None, "shed": False, "shed_since": None}
+
+
+def pi_lastabwurf_24h(bezug_w, soll_kw):
+    return _pi_lastabwurf_group(
+        PI_LASTABWURF_24H, _pi_lastabwurf_24h_state, bezug_w, soll_kw,
+        PI_LASTABWURF_ON_DELAY_S, PI_LASTABWURF_MIN_OFF_S)
     return out
 
 
@@ -710,6 +742,34 @@ def shelly(ip):
         "current_a": em.get("total_current", 0.0),
         "energy_kwh": emd.get("total_act", 0.0) / 1000.0,
     }
+
+
+# Shelly 3EM, 2 unabhaengige Lasten an verschiedenen Phasen desselben Messgeraets:
+# Stiegenheizung Hotel (400V R+S, Phasen a+b) + Rigol (230V T, Phase c allein).
+SHELLY_3EM_SPLIT = {
+    "192.168.40.162": {
+        ("a", "b"): "stiegenheizung_hotel",
+        ("c",): "rigol",
+    },
+}
+
+
+def shelly_3em_split(ip, phase_groups):
+    def rpc(m):
+        u = "http://%s/rpc/%s?id=0" % (ip, m)
+        with urllib.request.urlopen(u, timeout=HTTP_TIMEOUT) as r:
+            return json.loads(r.read().decode())
+
+    em, emd = rpc("EM.GetStatus"), rpc("EMData.GetStatus")
+    out = {}
+    for phases, name in phase_groups.items():
+        out[name] = {
+            "power_w": sum(em.get("%s_act_power" % p, 0.0) or 0.0 for p in phases),
+            "current_a": sum(em.get("%s_current" % p, 0.0) or 0.0 for p in phases),
+            "energy_kwh": sum(emd.get("%s_total_act_energy" % p, 0.0) or 0.0
+                               for p in phases) / 1000.0,
+        }
+    return out
 
 
 # ---------------------------------------------------------------- SunSpec Modbus
@@ -945,6 +1005,16 @@ def collect(cycle=0):
         except Exception as e:
             dbg["consumer_%s_err" % name] = str(e)
 
+    for ip, groups in SHELLY_3EM_SPLIT.items():
+        try:
+            vals = shelly_3em_split(ip, groups)
+            for name, d in vals.items():
+                add("consumer", {"name": name}, {
+                    "power_w": round(d["power_w"]), "current_a": d["current_a"],
+                    "energy_kwh": d["energy_kwh"]})
+        except Exception as e:
+            dbg["consumer_3em_%s_err" % ip] = str(e)
+
     for ip, chans in EM_METERS.items():
         for ch, name in chans.items():
             try:
@@ -1046,6 +1116,14 @@ def collect(cycle=0):
             add("lastabwurf_pi", {}, f)
         except Exception as e:
             dbg["lastabwurf_pi_err"] = str(e)
+    if PI_LASTABWURF_24H and grid_w is not None:
+        try:
+            bezug_w = max(0.0, grid_w)
+            soll_kw = lastabwurf_setpoint(cycle)
+            f = pi_lastabwurf_24h(bezug_w, soll_kw)
+            add("lastabwurf_pi_24h", {}, f)
+        except Exception as e:
+            dbg["lastabwurf_pi_24h_err"] = str(e)
     return lines, dbg
 
 
