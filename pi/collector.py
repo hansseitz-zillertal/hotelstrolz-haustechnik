@@ -539,17 +539,43 @@ def _shelly_switch(ip, on, channel=0):
 
 
 def _devspec(v):
-    """PI_LASTABWURF-Werte sind entweder "ip" (Kanal 0) oder (ip, kanal)."""
+    """Shelly-Gruppenwerte sind entweder "ip" (Kanal 0) oder (ip, kanal)."""
     return (v, 0) if isinstance(v, str) else v
 
 
+def _switch_shelly(v, on):
+    ip, ch = _devspec(v)
+    _shelly_switch(ip, on, ch)
+
+
+def _logo_bit_write(ip, byte, bit, on, slot=2):
+    """Einzelnes VM-Bit auf einer LOGO setzen/loeschen (read-modify-write,
+    da mehrere Bits dasselbe Byte teilen koennen, z.B. V1.0 + V1.1)."""
+    import snap7
+    c = _s7_clients.get(ip)
+    if c is None or not c.get_connected():
+        c = snap7.client.Client()
+        c.connect(ip, 0, slot)
+        _s7_clients[ip] = c
+    cur = c.db_read(1, byte, 1)[0]
+    new = (cur | (1 << bit)) if on else (cur & ~(1 << bit) & 0xFF)
+    if new != cur:
+        c.db_write(1, byte, bytes([new]))
+
+
+def _switch_logo_bit(v, on):
+    ip, byte, bit = v
+    _logo_bit_write(ip, byte, bit, on)
+
+
 def _pi_lastabwurf_group(devices, state, bezug_w, soll_kw, on_delay_s,
-                          min_off_s, restore_gate=None):
-    """Gemeinsamer Lastabwurf fuer eine Geraetegruppe, die der Pi direkt per
-    Shelly-RPC schaltet (kein LOGO-Ausgang frei). Einschaltverzoegerung gegen
-    kurze Lastspitzen, Mindest-Aus-Zeit gegen Flattern. restore_gate(now) ->
-    bool, falls gesetzt: zusaetzliche Bedingung, bevor wieder eingeschaltet
-    werden darf (z.B. Zeitplan-Ruecksicht); None = immer erlaubt."""
+                          min_off_s, switch_fn, restore_gate=None):
+    """Gemeinsamer Lastabwurf fuer eine Geraetegruppe, bei der der Pi die
+    Entscheidung trifft (Einschaltverzoegerung gegen Lastspitzen,
+    Mindest-Aus-Zeit gegen Flattern) und switch_fn(wert, on) die eigentliche
+    Aktorik macht (Shelly-RPC oder LOGO-VM-Bit). restore_gate(now) -> bool,
+    falls gesetzt: zusaetzliche Bedingung vorm Wiedereinschalten (z.B.
+    Zeitplan-Ruecksicht); None = immer erlaubt."""
     if not devices:
         return {}
     now = time.time()
@@ -559,22 +585,22 @@ def _pi_lastabwurf_group(devices, state, bezug_w, soll_kw, on_delay_s,
         if state["over_since"] is None:
             state["over_since"] = now
         if not state["shed"] and now - state["over_since"] >= on_delay_s:
-            for ip, ch in (_devspec(v) for v in devices.values()):
+            for name, v in devices.items():
                 try:
-                    _shelly_switch(ip, False, ch)
+                    switch_fn(v, False)
                 except Exception as e:
-                    errs.append("%s:%s:%s" % (ip, ch, e))
+                    errs.append("%s:%s" % (name, e))
             state["shed"] = True
             state["shed_since"] = now
     else:
         state["over_since"] = None
         if (state["shed"] and now - state["shed_since"] >= min_off_s
                 and (restore_gate is None or restore_gate(now))):
-            for ip, ch in (_devspec(v) for v in devices.values()):
+            for name, v in devices.items():
                 try:
-                    _shelly_switch(ip, True, ch)
+                    switch_fn(v, True)
                 except Exception as e:
-                    errs.append("%s:%s:%s" % (ip, ch, e))
+                    errs.append("%s:%s" % (name, e))
             state["shed"] = False
             state["shed_since"] = None
     out = {"shed": int(state["shed"])}
@@ -586,7 +612,7 @@ def _pi_lastabwurf_group(devices, state, bezug_w, soll_kw, on_delay_s,
 def pi_lastabwurf(bezug_w, soll_kw):
     return _pi_lastabwurf_group(
         PI_LASTABWURF, _pi_lastabwurf_state, bezug_w, soll_kw,
-        PI_LASTABWURF_ON_DELAY_S, PI_LASTABWURF_MIN_OFF_S,
+        PI_LASTABWURF_ON_DELAY_S, PI_LASTABWURF_MIN_OFF_S, _switch_shelly,
         restore_gate=lambda now: (
             _in_schedule_window(now)
             and any(_ran_today(name) for name in PI_LASTABWURF)))
@@ -605,8 +631,24 @@ _pi_lastabwurf_24h_state = {"over_since": None, "shed": False, "shed_since": Non
 def pi_lastabwurf_24h(bezug_w, soll_kw):
     return _pi_lastabwurf_group(
         PI_LASTABWURF_24H, _pi_lastabwurf_24h_state, bezug_w, soll_kw,
-        PI_LASTABWURF_ON_DELAY_S, PI_LASTABWURF_MIN_OFF_S)
-    return out
+        PI_LASTABWURF_ON_DELAY_S, PI_LASTABWURF_MIN_OFF_S, _switch_shelly)
+
+
+# Skischuhtrockner Villa + Stiegenheizung Villa: Pi trifft die Entscheidung
+# wie bei den anderen Pi-Gruppen, aber geschaltet wird nicht per Shelly-RPC,
+# sondern per einzelnem VM-Bit auf der LOGO .50 (dort schon freier Ausgang
+# vorhanden). Getrennte Bits, gemeinsames Byte V1 (read-modify-write).
+PI_LASTABWURF_VILLA = {
+    "stiegenheizung_villa": ("192.168.40.50", 1, 0),   # V1.0
+    "skischuhtrockner_villa": ("192.168.40.50", 1, 1),  # V1.1
+}
+_pi_lastabwurf_villa_state = {"over_since": None, "shed": False, "shed_since": None}
+
+
+def pi_lastabwurf_villa(bezug_w, soll_kw):
+    return _pi_lastabwurf_group(
+        PI_LASTABWURF_VILLA, _pi_lastabwurf_villa_state, bezug_w, soll_kw,
+        PI_LASTABWURF_ON_DELAY_S, PI_LASTABWURF_MIN_OFF_S, _switch_logo_bit)
 
 
 def write_lastabwurf(bezug_w, soll_kw):
@@ -1124,6 +1166,16 @@ def collect(cycle=0):
             add("lastabwurf_pi_24h", {}, f)
         except Exception as e:
             dbg["lastabwurf_pi_24h_err"] = str(e)
+    if PI_LASTABWURF_VILLA and grid_w is not None:
+        try:
+            bezug_w = max(0.0, grid_w)
+            soll_kw = lastabwurf_setpoint(cycle)
+            f = pi_lastabwurf_villa(bezug_w, soll_kw)
+            add("lastabwurf_pi_villa", {}, f)
+        except ImportError:
+            pass
+        except Exception as e:
+            dbg["lastabwurf_pi_villa_err"] = str(e)
     return lines, dbg
 
 
