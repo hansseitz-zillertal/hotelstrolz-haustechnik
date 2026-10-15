@@ -1373,7 +1373,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 52
+        "y": 56
       }
     },
     {
@@ -1385,7 +1385,7 @@
         "h": 9,
         "w": 24,
         "x": 0,
-        "y": 53
+        "y": 57
       },
       "fieldConfig": {
         "defaults": {
@@ -1511,7 +1511,7 @@
         "h": 7,
         "w": 24,
         "x": 0,
-        "y": 62
+        "y": 66
       },
       "fieldConfig": {
         "defaults": {
@@ -1819,7 +1819,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 69
+        "y": 73
       }
     },
     {
@@ -1830,7 +1830,7 @@
         "h": 5,
         "w": 24,
         "x": 0,
-        "y": 70
+        "y": 74
       },
       "fieldConfig": {
         "defaults": {
@@ -2632,6 +2632,74 @@
         {
           "refId": "A",
           "query": "from(bucket: \"solar\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop) |> filter(fn: (r) => r._measurement == \"lastabwurf_pi_24h\" and r._field == \"shed\") |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false) |> map(fn: (r) => ({ r with _field: \"Stiegenheizung/Rigol\" })) |> keep(columns: [\"_time\", \"_value\", \"_field\"])"
+        }
+      ]
+    },
+    {
+      "id": 21,
+      "type": "state-timeline",
+      "title": "Lastabwurf Pi (Stiegenheizung Villa / Gartenhaus / Skischuhtrockner Villa)  ·  abgeworfen = rot",
+      "gridPos": {
+        "h": 4,
+        "w": 24,
+        "x": 0,
+        "y": 52
+      },
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "0": {
+                  "text": "frei",
+                  "color": "green",
+                  "index": 0
+                },
+                "1": {
+                  "text": "abgeworfen",
+                  "color": "dark-red",
+                  "index": 1
+                }
+              }
+            }
+          ],
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "value": null,
+                "color": "green"
+              },
+              {
+                "value": 1,
+                "color": "dark-red"
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "mergeValues": false,
+        "showValue": "never",
+        "rowHeight": 0.9,
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "query": "from(bucket: \"solar\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop) |> filter(fn: (r) => r._measurement == \"lastabwurf_pi_villa\" and r._field == \"shed\") |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false) |> map(fn: (r) => ({ r with _field: \"Villa\" })) |> keep(columns: [\"_time\", \"_value\", \"_field\"])"
+        },
+        {
+          "refId": "B",
+          "query": "from(bucket: \"solar\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop) |> filter(fn: (r) => r._measurement == \"lastabwurf_pi_gartenhaus\" and r._field == \"shed\") |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false) |> map(fn: (r) => ({ r with _field: \"Gartenhaus\" })) |> keep(columns: [\"_time\", \"_value\", \"_field\"])"
         }
       ]
     }
