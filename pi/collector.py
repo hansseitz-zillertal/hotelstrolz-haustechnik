@@ -373,6 +373,9 @@ def shelly_ht(ip):
 _s7_clients = {}     # ip -> snap7 Client (persistent, reconnect bei Fehler)
 
 
+LOGO_ZERO_IS_VALID = {"kessel_soll"}  # 0 = "keine Anforderung", kein inaktiver Fuehler
+
+
 def logo_temps():
     """Werte aus allen LOGO!8 (S7/DB1). ({meas: {name: {field: val}}}, errs).
     vw -> Feld temp_c (degC), bits -> Feld on (0/1). Braucht python-snap7."""
@@ -398,7 +401,10 @@ def logo_temps():
                     field = spec.get("field", "temp_c")
                     scale = spec.get("scale", LOGO_VW_SCALE)
                 v = struct.unpack_from(">h", raw, addr)[0]
-                if v == 0 and field == "temp_c":   # Fuehler/AI noch nicht aktiv
+                # 0 heisst normalerweise "Fuehler/AI noch nicht aktiv" -> ueberspringen.
+                # Ausnahme: Sollwerte, bei denen 0 ein echter Zustand ist
+                # ("gerade keine Anforderung"), kein inaktiver Fuehler.
+                if v == 0 and field == "temp_c" and name not in LOGO_ZERO_IS_VALID:
                     continue
                 out.setdefault(meas, {}).setdefault(name, {})[field] = \
                     round(v * scale, 1)
