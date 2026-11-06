@@ -69,6 +69,9 @@ BOILERS = {                          # Shelly Pro 3EM (EM.GetStatus)
 CONSUMERS_3EM = {                     # Shelly 3EM / Pro 3EM (EM.GetStatus)
     "kuehlung": "192.168.40.59",
 }
+CONSUMERS_PM = {                      # Shelly PM Mini Gen3 (pm1:0, nur Messung, kein Relais)
+    "stiegenheizung_gartenhaus": "192.168.40.142",  # 05.11.: WLAN im Keller-Schaltschrank per AP gefixt
+}
 CONSUMERS_PLUG = {                    # Shelly Plug S Gen3 (Switch.GetStatus)
     "eismaschine": "192.168.40.36",
     "bierkuehler": "192.168.40.121",
@@ -790,6 +793,18 @@ def plug(ip):
     }
 
 
+# ---------------------------------------------------------------- Shelly PM Mini Gen3
+def pm_mini(ip):
+    u = "http://%s/rpc/PM1.GetStatus?id=0" % ip
+    with urllib.request.urlopen(u, timeout=HTTP_TIMEOUT) as r:
+        d = json.loads(r.read().decode())
+    return {
+        "p_w": d.get("apower", 0.0),
+        "current_a": d.get("current", 0.0),
+        "energy_kwh": d.get("aenergy", {}).get("total", 0.0) / 1000.0,
+    }
+
+
 # ---------------------------------------------------------------- Shelly Pro 3EM
 def shelly(ip):
     def rpc(m):
@@ -1063,6 +1078,15 @@ def collect(cycle=0):
             add("consumer", {"name": name}, {
                 "power_w": round(d["p_w"]), "current_a": d["current_a"],
                 "energy_kwh": d["energy_kwh"], "on": d["on"]})
+        except Exception as e:
+            dbg["consumer_%s_err" % name] = str(e)
+
+    for name, ip in CONSUMERS_PM.items():
+        try:
+            d = pm_mini(ip)
+            add("consumer", {"name": name}, {
+                "power_w": round(d["p_w"]), "current_a": d["current_a"],
+                "energy_kwh": d["energy_kwh"]})
         except Exception as e:
             dbg["consumer_%s_err" % name] = str(e)
 
