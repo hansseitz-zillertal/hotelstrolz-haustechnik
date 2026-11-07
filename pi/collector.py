@@ -56,7 +56,7 @@ PAC_WR34 = os.environ.get("PAC_WR34_HOST", "")
 INVERTERS = [
     {"name": "wr1", "ip": "192.168.40.35", "unit": 2, "meter": True},   # SE12.5K + Zaehler
     {"name": "wr2", "ip": "192.168.40.42", "unit": 1, "meter": False},  # SE25K
-    {"name": "wr3", "ip": "192.168.40.51", "unit": 1, "meter": False},  # SE25K
+    {"name": "wr3", "ip": "192.168.40.55", "unit": 1, "meter": False},  # SE25K, 07.11.: IP von .51 auf .55 gewechselt (DHCP/Switch-Vorfall)
     {"name": "wr4", "ip": "192.168.40.37", "unit": 1, "meter": False},  # SE25K
 ]
 BOILERS = {                          # Shelly Pro 3EM (EM.GetStatus)
