@@ -68,6 +68,7 @@ BOILERS = {                          # Shelly Pro 3EM (EM.GetStatus)
 # Weitere gemessene Verbraucher -> measurement "consumer".
 CONSUMERS_3EM = {                     # Shelly 3EM / Pro 3EM (EM.GetStatus)
     "kuehlung": "192.168.40.59",
+    "waschmaschine_trockner": "192.168.40.165",  # 11.11.: Shelly Pro 3EM, Summe beider Geraete
 }
 CONSUMERS_PM = {                      # Shelly PM Mini Gen3 (pm1:0, nur Messung, kein Relais)
     "stiegenheizung_gartenhaus": "192.168.40.142",  # 05.11.: WLAN im Keller-Schaltschrank per AP gefixt
