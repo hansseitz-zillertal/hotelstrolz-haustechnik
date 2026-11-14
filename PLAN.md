@@ -153,6 +153,28 @@ PAC2200-Tagesprofil - durch die lastprofil.py-Analyse oben ueberholt, aber Tarif
   induktiv (unkritisch). Momentan schlechter PF erklärt sich durch kleine
   Wirkleistung, wenn PV den Verbrauch deckt.
 
+## Störung 14.11.2026: Grafana „InfluxDB plugin failed – Could not load plugin"
+Backend (Pi/InfluxDB/Collector) lief durchgehend normal (Daten 15–45 s alt).
+Erster Blick (von einem Mac ohne SSH-Zugang zum Pi, nur über die Grafana-API)
+zeigte das Datasource-Plugin „influxdb" auf `enabled: false` und ein Toggle per
+`POST /api/plugins/influxdb/settings {"enabled": true}` schien kurzzeitig zu
+helfen — löste das Problem aber nicht dauerhaft.
+**Echte Ursache (per SSH tief diagnostiziert):** die am 06.11. abgebrochene
+Grafana-Paketaktualisierung (13.2.4→13.3.0, Download/Unpack-Fehler) hatte echte
+**ext4-Dateisystemkorruption** auf der SD-Karte hinterlassen (`dmesg`:
+„checksumming directory block 0" / „Directory block failed checksum" im
+Grafana-Plugin-Verzeichnisbaum). `dpkg -V grafana` zeigte >150 kaputte/fehlende
+Dateien, u.a. das Grafana-Binary selbst und die JS-Datei, die den Browser-Fehler
+auslöste. Lief seit 06.11. unbemerkt (alter Prozess im Speicher), bis ein
+Neustart den kaputten On-Disk-Stand erzwang (Crash-Loop).
+**Fix:** `/etc/grafana` gesichert, `apt-get purge -y grafana`,
+`rm -rf /usr/share/grafana`, `apt-get install -y grafana` (frisch, 13.3.1) →
+`dpkg -V grafana` danach 0 Abweichungen, 0 neue ext4-Fehler seit Reboot.
+Provisioning-Configs zurückgespielt, `/var/lib/grafana/dashboards/*.json` war
+vom Purge nicht betroffen. Details: Memory `project_solar.md`.
+Lehre: SD-Karte ist vermutlich altersschwach (seit 06.09. im Einsatz, mehrere
+Unclean-Shutdowns) — bei Wiederholung eher tauschen als erneut reparieren.
+
 ## Referenzdaten (Stand 06.09.2026)
 - Zählerstand Netzbezug T1: 427.269 kWh · Einspeisung T1: 34.620 kWh
 - Jahr 2026 bisher: Bezug 109.387 kWh · Einspeisung 13.220 kWh
