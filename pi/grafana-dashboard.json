@@ -2638,7 +2638,7 @@
     {
       "id": 21,
       "type": "state-timeline",
-      "title": "Lastabwurf Pi (Stiegenheizung Villa / Gartenhaus / Skischuhtrockner Villa)  ·  abgeworfen = rot",
+      "title": "Lastabwurf Pi (Stiegenheizung Villa / Gartenhaus / Skischuhtrockner Villa / Sauna Stufe 2)  ·  abgeworfen = rot",
       "gridPos": {
         "h": 4,
         "w": 24,
@@ -2700,6 +2700,10 @@
         {
           "refId": "B",
           "query": "from(bucket: \"solar\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop) |> filter(fn: (r) => r._measurement == \"lastabwurf_pi_gartenhaus\" and r._field == \"shed\") |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false) |> map(fn: (r) => ({ r with _field: \"Gartenhaus\" })) |> keep(columns: [\"_time\", \"_value\", \"_field\"])"
+        },
+        {
+          "refId": "C",
+          "query": "from(bucket: \"solar\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop) |> filter(fn: (r) => r._measurement == \"lastabwurf_pi_sauna\" and r._field == \"shed\") |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false) |> map(fn: (r) => ({ r with _field: \"Sauna Stufe 2\" })) |> keep(columns: [\"_time\", \"_value\", \"_field\"])"
         }
       ]
     },

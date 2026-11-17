@@ -677,6 +677,22 @@ def pi_lastabwurf_gartenhaus(bezug_w, soll_kw):
         PI_LASTABWURF_ON_DELAY_S, PI_LASTABWURF_MIN_OFF_S, _switch_logo_bit)
 
 
+# Sauna Stufe 2: Shelly .95 liegt in der Steuerleitung zwischen Saunasteuerung
+# und Ofen-Stufe-2-Ausloeser (kein eigener Lastkreis, nur das Steuersignal).
+# Relais offen -> Stufe 2 kann nicht ausloesen. 24h-Gruppe wie Stiegenheizung
+# Hotel/Rigol, kein Zeitfenster (die Sauna kann jederzeit laufen).
+PI_LASTABWURF_SAUNA = {
+    "sauna_stufe2": ("192.168.40.95", 0),   # Shelly Pro 2PM, Kanal 0
+}
+_pi_lastabwurf_sauna_state = {"over_since": None, "shed": False, "shed_since": None}
+
+
+def pi_lastabwurf_sauna(bezug_w, soll_kw):
+    return _pi_lastabwurf_group(
+        PI_LASTABWURF_SAUNA, _pi_lastabwurf_sauna_state, bezug_w, soll_kw,
+        PI_LASTABWURF_ON_DELAY_S, PI_LASTABWURF_MIN_OFF_S, _switch_shelly)
+
+
 def write_lastabwurf(bezug_w, soll_kw):
     """Netzbezug (VW_IST) + Sollwert (VW_SOLL) per S7 in die Abwurf-LOGO schreiben."""
     import snap7
@@ -1233,6 +1249,14 @@ def collect(cycle=0):
             pass
         except Exception as e:
             dbg["lastabwurf_pi_gartenhaus_err"] = str(e)
+    if PI_LASTABWURF_SAUNA and grid_w is not None:
+        try:
+            bezug_w = max(0.0, grid_w)
+            soll_kw = lastabwurf_setpoint(cycle)
+            f = pi_lastabwurf_sauna(bezug_w, soll_kw)
+            add("lastabwurf_pi_sauna", {}, f)
+        except Exception as e:
+            dbg["lastabwurf_pi_sauna_err"] = str(e)
     return lines, dbg
 
 
